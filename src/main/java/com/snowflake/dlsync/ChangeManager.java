@@ -5,10 +5,12 @@ import com.snowflake.dlsync.doa.ScriptRepo;
 import com.snowflake.dlsync.doa.ScriptSource;
 import com.snowflake.dlsync.models.*;
 import com.snowflake.dlsync.parser.ParameterInjector;
+import com.snowflake.dlsync.parser.TestQueryGenerator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -204,6 +206,35 @@ public class ChangeManager {
         dependencyList.addAll(manualDependencies);
         scriptRepo.insertDependencyList(dependencyList);
         endSyncSuccess(ChangeType.CREATE_LINEAGE, (long)dependencyList.size());
+    }
+
+    public void test() throws SQLException, IOException {
+        log.info("Started Test module.");
+        startSync(ChangeType.TEST);
+        List<Script> scripts = scriptSource.getAllScripts().stream()
+                .filter(script -> !config.isScriptExcluded(script))
+                .filter(script -> !script.getObjectType().isMigration())
+                .collect(Collectors.toList());
+        scripts.forEach(script -> parameterInjector.injectParameters(script));
+
+        List<TestScript> testScripts = scriptSource.getTestScripts(scripts);
+        int size = testScripts.size();
+        int index = 1;
+        for(TestScript script: testScripts) {
+            log.info("{} of {}: testing object: {}", index++, size, script);
+//            TestQueryGenerator testQueryGenerator = new TestQueryGenerator(script);
+            log.debug("Testing query: [{}]", script.getTestQuery());
+            List<TestResult> testResults = scriptRepo.runTest(script);
+            if(testResults.size() > 0) {
+                log.info("Test query for script: {} is: \n{}", script, script.getTestQuery());
+                log.error("Test failed for script: {} with error: [{}]", script, testResults);
+            }
+            else {
+                log.info("Test passed for script: {}", script);
+            }
+
+        }
+        endSyncSuccess(ChangeType.TEST, (long)size);
     }
 
     public void startSync(ChangeType changeType) throws SQLException {

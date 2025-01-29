@@ -9,6 +9,14 @@ public class ScriptFactory {
         return new StateScript(databaseName, schemaName, objectName, objectType, content);
     }
 
+    public static StateScript getStateScript(String scriptPath, String databaseName, String schemaName, ScriptObjectType objectType, String objectName, String content) {
+        return new StateScript(scriptPath, databaseName, schemaName, objectName, objectType, content);
+    }
+
+    public static MigrationScript getMigrationScript(String scriptPath, String databaseName, String schemaName, ScriptObjectType objectType, String objectName, String content, Long version, String author, String rollback, String verify) {
+        return new MigrationScript(scriptPath, databaseName, schemaName, objectName, objectType, content, version, author, rollback, verify);
+    }
+
     public static MigrationScript getMigrationScript(String databaseName, String schemaName, ScriptObjectType objectType, String objectName, String content, Long version, String author, String rollback, String verify) {
         return new MigrationScript(databaseName, schemaName, objectName, objectType, content, version, author, rollback, verify);
     }
@@ -43,6 +51,10 @@ public class ScriptFactory {
 
     public static MigrationScript getMigrationScript(String databaseName, String schemaName, ScriptObjectType objectType, String objectName, Migration migration) {
         return new MigrationScript(databaseName, schemaName, objectName, objectType, migration.getContent(), migration.getVersion(), migration.getAuthor(), migration.getRollback(), migration.getVerify());
+    }
+
+    public static TestScript getTestScript(String scriptPath, String databaseName, String schemaName, ScriptObjectType objectType, String objectName, String content, Script script) {
+        return new TestScript(scriptPath, databaseName, schemaName, objectName, objectType, content, script);
     }
 
 }

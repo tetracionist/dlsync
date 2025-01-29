@@ -25,7 +25,7 @@ public class ScriptSource {
     public ScriptSource(String scriptRoot) {
         this.scriptRoot = scriptRoot;
         mainScriptDir = Files.exists(Path.of(scriptRoot, "main")) ? Path.of(scriptRoot, "main").toString(): scriptRoot;
-        testScriptDir = Path.of(scriptRoot, "tests").toString();
+        testScriptDir = Path.of(scriptRoot, "test").toString();
         log.debug("Script file reader initialized with scriptRoot: {}", scriptRoot);
     }
 
@@ -70,6 +70,20 @@ public class ScriptSource {
             }
         }
         return allScripts;
+    }
+
+    public List<TestScript> getTestScripts(List<Script> scripts) throws IOException {
+            List<TestScript> testScripts = scripts.stream()
+                    .map(script -> {
+                        try {
+                            return getTestScript(script);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .filter(testScript -> testScript != null)
+                    .collect(Collectors.toList());
+            return testScripts;
     }
 
     public List<Script> getScriptsInSchema(String database, String schema) throws IOException {
@@ -123,7 +137,7 @@ public class ScriptSource {
             }
         }
         else {
-            Script script = ScriptFactory.getStateScript(database, schema, objectType, objectName, content);
+            Script script = ScriptFactory.getStateScript(file.getPath(), database, schema, objectType, objectName, content);
 //            Script script = new Script(database, schema, objectType, objectName, content);
             scripts.add(script);
         }
@@ -131,14 +145,19 @@ public class ScriptSource {
     }
 
 
-    public Script getScriptByName(String database, String schema, ScriptObjectType type, String objectName) throws IOException {
-        File file = Path.of(mainScriptDir, database, schema, type.toString(), objectName + ".SQL").toFile();
+    public TestScript getTestScript(Script script) throws IOException {
+        String objectName = script.getObjectName() + "_TEST";
+        String testScriptPath = script.getScriptPath().replace(".SQL", "_TEST.SQL");
+        testScriptPath = testScriptPath.replaceAll("^" + mainScriptDir, testScriptDir);
+        File file = Path.of(testScriptPath).toFile();
+        if(file.exists()) {
+            log.info("Test script file found: {}", file.getPath());
+            String content = Files.readString(file.toPath());
+            TestScript testScript = ScriptFactory.getTestScript(file.getPath(), script.getDatabaseName(), script.getSchemaName(), script.getObjectType(), objectName, content, script);
+            return testScript;
+        }
+        return null;
 
-        String content = Files.readString(file.toPath());
-
-        Script script = ScriptFactory.getStateScript(database, schema, type, objectName, content);
-//        Script script = new Script(database, schema, type, objectName, content);
-        return script;
     }
 
     public void createScriptFiles(List<Script> scripts) {

@@ -4,25 +4,24 @@
 
 ---
 
-DLSync is a database change management that deploys database changes to our database. 
-Each object(view, table, udf ...) in our database will 
-have a corresponding SQL script file where every change to this object is tracked in this file only. DLSync keeps track of what changes have been deployed to database 
+DLSync is a database change management tool designed to streamline the development and deployment of snowflake changes. 
+By associating each database object(view, table, udf ...) with a corresponding SQL script file, DLSync tracks every modification, ensuring efficient and accurate updates.
+Each script can also have a corresponding test script that can be used to write unit tests for the database object. 
+. DLSync keeps track of what changes have been deployed to database 
 by using hash. Hence DLSync is capable of identifying what scripts have changed in the current deployment.
 Using this DLSync only deploys changed script to database objects.
 DLSync also understands interdependency between different scripts, thus applies these changes
 according their dependency.
-Based on how we define the changes to database objects, DLSync divides database object scripts to 2 types, State and migration scripts.
 ## Key Features 
-- It combines state based and migration based change management to manage database changes
-- Each object will have it's corresponding unique Script file where we can define the change to the object
-- It can detect change between previous deployment and current script state.
-- It can reorder scripts based on their dependency before deploying to database.
-- It supports parametrization of scripts where we can define variables that change between different database instances.
-- It supports parameter config file where each parameter config file corresponds to an instance 
-- It supports rollback to previous deployment state. 
-- Rollback is very simple and intuitive. Only one needs to rollback git repository of the script and triggering rollback module.
-- It supports verify module where each database object is checked with current script to check for deployment verification or tracking out of sync database changes.
-- It supports create script where we can create script file for each database objects.
+- Hybrid Change Management: It combines state based and migration based change management to manage database changes
+- Unique Script per object: Each object will have it's corresponding unique Script file where we can define the change to the object
+- Unit Testing: It supports unit testing where we can write test scripts for each database object.
+- Change detection: It can detect change between previous deployment and current script state.
+- Dependency resolution: It can reorder scripts based on their dependency before deploying to database.
+- Parametrization: It supports parametrization of scripts where we can define variables that change between different database instances. Each instance is associated with parameter config file, where each parameter config lists the variables and their value for that instance. 
+- Rollback: It supports rollback to previous deployment state. Rollback is very simple and intuitive. Only one needs to rollback git repository of the script and triggering rollback module.
+- Verification: It supports verify module where each database object is checked with current script to check for deployment verification or tracking out of sync database changes.
+- Script creation: It supports create script where we can create script file for each database objects.
 
 ## Project structure
 To use this tool first create your script root directory.
@@ -47,6 +46,15 @@ Inside this directory create a directory structure like:
 │   │   │   │   ├── object_name_7.sql               # The database object name(table name, view name, function name ...)
 │   │   │   │   ├── object_name_8.sql               # The database object name(table name, view name, function name ...)
 ├── /tests                                          # SQL unit test scripts
+│   ├── /database_name_1                            
+│   │   ├── /schema_name_1                          
+│   │   │   ├── /[object_type]_1                    
+│   │   │   │   ├── object_name_1_test.sql          # unit test file for object object_name_1_test
+│   │   │   │   ├── object_name_2_test.sql          # unit test file for object object_name_2_test
+│   │   ├── /schema_name_2                          
+│   │   │   ├── /[object_type]_1                    
+│   │   │   │   ├── object_name_5_test.sql          # unit test file for object object_name_5_test
+│   │   │   │   ├── object_name_6_test.sql          # unit test file for object object_name_6_test
 ├── config.yml                                      # configuration file
 ├── parameter-[profile-1].properties                # parameter property file  
 ├── parameter-[profile-2].properties                # parameter property file
