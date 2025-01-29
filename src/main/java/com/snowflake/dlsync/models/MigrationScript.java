@@ -7,13 +7,18 @@ public class MigrationScript extends Script {
     private String rollback;
     private String verify;
 
-    public MigrationScript(String databaseName, String schemaName, String objectName, ScriptObjectType objectType, String content, Long version, String author, String rollback, String verify) {
-        super(databaseName, schemaName, objectName, objectType, content);
+    public MigrationScript(String scriptPath, String databaseName, String schemaName, String objectName, ScriptObjectType objectType, String content, Long version, String author, String rollback, String verify) {
+        super(scriptPath, databaseName, schemaName, objectName, objectType, content);
         this.version = version;
         this.author = author;
         this.rollback = rollback;
         this.verify = verify;
     }
+
+    public MigrationScript(String databaseName, String schemaName, String objectName, ScriptObjectType objectType, String content, Long version, String author, String rollback, String verify) {
+        this(null, databaseName, schemaName, objectName, objectType, content, version, author, rollback, verify);
+    }
+
 
     @Override
     public String getId() {

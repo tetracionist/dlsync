@@ -51,6 +51,10 @@ public class Main {
                     changeManager.createLineage();
                     log.info("DLsync successfully created lineage to DB.");
                     break;
+                case TEST:
+                    changeManager.test();
+                    log.info("DLsync successfully tested.");
+                    break;
                 default:
                     log.error("Change type not specified as an argument.");
             }

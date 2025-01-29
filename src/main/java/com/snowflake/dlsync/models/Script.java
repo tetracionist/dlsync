@@ -9,6 +9,7 @@ import java.util.Objects;
 
 @Slf4j
 public abstract class Script {
+    private String scriptPath;
     private String databaseName;
     private String schemaName;
     private String objectName;
@@ -16,13 +17,18 @@ public abstract class Script {
     private String content;
     private String hash;
 
-    public Script(String databaseName, String schemaName, String objectName, ScriptObjectType objectType, String content) {
+    public Script(String scriptPath, String databaseName, String schemaName, String objectName, ScriptObjectType objectType, String content) {
+        this.scriptPath = scriptPath;
         this.databaseName = databaseName.toUpperCase();
         this.schemaName = schemaName.toUpperCase();
         this.objectName = objectName.toUpperCase();
         this.objectType = objectType;
         this.content = content.trim();
         this.hash = hash = Util.getMd5Hash(this.content);
+    }
+
+    public String getScriptPath() {
+        return scriptPath;
     }
 
     public String getDatabaseName() {

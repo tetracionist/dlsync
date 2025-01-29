@@ -7,6 +7,7 @@ import com.snowflake.dlsync.models.*;
 import com.snowflake.dlsync.parser.SqlTokenizer;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -426,7 +427,7 @@ public class ScriptRepo {
         return connectionProperties.getProperty("schema");
     }
 
-    private ResultSet executeQuery(String query) throws SQLException {
+    public ResultSet executeQuery(String query) throws SQLException {
         return connection.createStatement().executeQuery(query);
     }
 
@@ -562,6 +563,23 @@ public class ScriptRepo {
 
     public boolean compareScript(Script script1, Script script2) {
         return SqlTokenizer.compareScripts(script1, script2);
+    }
+
+    public List<TestResult> runTest(TestScript testScript) throws IOException {
+        List<TestResult> testResults = new ArrayList<>();
+        try {
+            log.debug("Running test script: {}", testScript.getObjectName());
+            ResultSet resultSet = connection.createStatement().executeQuery(testScript.getTestQuery());
+            while(resultSet.next()) {
+                TestResult testResult = new TestResult(resultSet.getString(1), resultSet.getString(2));
+                testResults.add(testResult);
+            }
+            return testResults;
+        } catch (SQLException e) {
+            log.error("Error while running test script: {}", e.getMessage());
+            testResults.add(new TestResult(e));
+            return testResults;
+        }
     }
 }
 
