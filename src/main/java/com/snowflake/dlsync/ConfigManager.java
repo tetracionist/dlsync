@@ -1,10 +1,8 @@
 package com.snowflake.dlsync;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.snowflake.dlsync.models.Config;
-import com.snowflake.dlsync.models.Script;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,7 +11,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,12 +18,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class ConfigManager {
     private final static String CONFIG_FILE_NAME = "config.yaml";
-    private final static String[] JDBC_KEY = {"user", "password", "account", "warehouse", "db", "schema", "role", "authenticator"};
+    private final static String[] JDBC_KEY = {"url", "account", "user", "password", "authenticator", "role", "warehouse", "db", "schema"};
     private final static String SCRIPT_ROOT_KEY = "SCRIPT_ROOT";
     private String scriptRoot;
     private String profile;
     private Properties scriptParameters;
-    private Properties jdbcProperties;
     private Config config;
     private AtomicBoolean isInitialized = new AtomicBoolean(false);
 
@@ -42,35 +38,33 @@ public class ConfigManager {
         log.info("Using [{}] as profile.", this.profile);
     }
 
-    public ConfigManager(String scriptRoot, String profile, Properties jdbcProperties, Properties scriptParameters, Config config) {
+    public ConfigManager(String scriptRoot, String profile, Properties scriptParameters, Config config) {
         this.scriptRoot = scriptRoot;
         this.profile = profile;
-        this.jdbcProperties = jdbcProperties;
         this.scriptParameters = scriptParameters;
         this.config = config;
     }
 
     public void init() throws IOException {
         if(isInitialized.compareAndSet(false, true)) {
-            readEnvVariables();
             readConfig();
+            readEnvConnectionProperties();
             readParameters();
         }
     }
 
-    public void readEnvVariables() {
-        jdbcProperties = new Properties();
+    public void readEnvConnectionProperties() {
+        Properties connectionProperties = config.getConnection();
+        if(connectionProperties == null) {
+            connectionProperties = new Properties();
+        }
         for(String key: JDBC_KEY) {
             String jdbcConfigValue = System.getenv(key);
-            if(jdbcConfigValue == null) {
-                if(!key.equals("authenticator")) {
-                    log.warn("JDBC connection property {} not found", key);
-                }
-            }
-            else {
-                jdbcProperties.put(key, jdbcConfigValue);
+            if(jdbcConfigValue != null) {
+                connectionProperties.put(key, jdbcConfigValue);
             }
         }
+        config.setConnection(connectionProperties);
     }
 
     public void readConfig() {
@@ -107,10 +101,6 @@ public class ConfigManager {
 
     public Config getConfig() {
         return config;
-    }
-
-    public Properties getJdbcProperties() {
-        return jdbcProperties;
     }
 
     public Properties getScriptParameters() {
