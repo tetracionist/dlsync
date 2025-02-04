@@ -22,7 +22,7 @@ public class ChangeMangerFactory {
     public static ChangeManager createChangeManger(ConfigManager configManager) throws IOException {
         configManager.init();
         ScriptSource scriptSource = new ScriptSource(configManager.getScriptRoot());
-        ScriptRepo scriptRepo = new ScriptRepo(configManager.getJdbcProperties());
+        ScriptRepo scriptRepo = new ScriptRepo(configManager.getConfig().getConnection());
         ParameterInjector parameterInjector = new ParameterInjector(configManager.getScriptParameters());
         DependencyExtractor dependencyExtractor = new DependencyExtractor();
         DependencyGraph dependencyGraph = new DependencyGraph(dependencyExtractor, configManager.getConfig());

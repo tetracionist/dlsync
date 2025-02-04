@@ -6,3 +6,10 @@ dependencyOverride:
   - script: ${EXAMPLE_DB}.${MAIN_SCHEMA}.UPDATE_STOCK
     dependencies:
       - ${EXAMPLE_DB}.${MAIN_SCHEMA}.PRODUCTS
+connection:
+  account: <account>
+  warehouse:  <warehouse>
+  role: <role>
+  db: <db>
+  schema: <schema>
+

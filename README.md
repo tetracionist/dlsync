@@ -8,7 +8,7 @@ DLSync is a database change management tool designed to streamline the developme
 By associating each database object(view, table, udf ...) with a corresponding SQL script file, DLSync tracks every modification, ensuring efficient and accurate updates.
 Each script can also have a corresponding test script that can be used to write unit tests for the database object. 
 . DLSync keeps track of what changes have been deployed to database 
-by using hash. Hence DLSync is capable of identifying what scripts have changed in the current deployment.
+by using hash. Hence, DLSync is capable of identifying what scripts have changed in the current deployment.
 Using this DLSync only deploys changed script to database objects.
 DLSync also understands interdependency between different scripts, thus applies these changes
 according their dependency.
@@ -45,7 +45,7 @@ Inside this directory create a directory structure like:
 │   │   │   ├── /[object_type]_2                    # Database Object type like (VIEWS, FUNCTIONS, TABLES ...)
 │   │   │   │   ├── object_name_7.sql               # The database object name(table name, view name, function name ...)
 │   │   │   │   ├── object_name_8.sql               # The database object name(table name, view name, function name ...)
-├── /tests                                          # SQL unit test scripts
+├── /test                                           # SQL unit test scripts
 │   ├── /database_name_1                            
 │   │   ├── /schema_name_1                          
 │   │   │   ├── /[object_type]_1                    
@@ -142,6 +142,84 @@ The migration script should adhere to the following rules:
 9. Verify if specified should start in a new line with `---verify:`. The verify script should be on a single line and must be terminated with semi-colon (;);
 10. Migration versions are immutable. Once a version is deployed, it cannot be changed. Only new versions can be added or existing versions can be rolled back.
 
+#### 3. Test Script
+This type of script is used write unit test for your scripts. You can write and execute unit tests for your database objects using this tool.
+Unit testing in DLSync allows you to validate the correctness of your database objects, such as views and UDFs, by writing test scripts. 
+Writing unit tests follows 3-step process:
+- mock your table dependencies using CTE by putting the table name as the CTE name.
+- Add expected data in the CTE, by putting `EXPECTED_DATA` as CTE name.
+- Add the query to refer to the database object with select statement.
+For example, if you have a view named `SAMPLE_VIEW`  with the following content:
+```
+create or replace view ${MY_DB}.{MY_SCHEMA}.SAMPLE_VIEW as 
+select tb1.id, tb1.my_column || '->' || tb2.my_column as my_new_column from ${MY_DB}.{MY_SECOND_SCHEMA}.MY_TABLE_1 tb_1
+join ${MY_DB}.{MY_SECOND_SCHEMA}.MY_TABLE_2 tb2 
+    on tb1.id = tb2.id;
+```
+
+Then your test script can be placed on the file `SAMPLE_VIEW_TEST.SQL` and the content of the test script can be:
+```
+with MY_TABLE_1 as (
+     SELECT * FROM VALUES
+        (1, 'old_value1', 5),
+        (2, 'old_value2', 20)
+    AS T(ID, MY_COLUMN)
+),
+MY_TABLE_2 as (
+    select '1' as id, 'new_value1' as my_column
+),
+expected_data as (
+    select '1' as id, 'old_value1->new_value1' as my_new_column
+)
+select * from ${MY_DB}.{MY_SCHEMA}.SAMPLE_VIEW;
+```
+Then dlsync will generate a query with the following content to validate the test:
+```
+with MY_TABLE_1 as (
+     SELECT * FROM VALUES
+        (1, 'old_value1', 5),
+        (2, 'old_value2', 20)
+    AS T(ID, MY_COLUMN)
+),
+MY_TABLE_2 as (
+    select '1' as id, 'new_value1' as my_column
+),
+expected_data as (
+    select '1' as id, 'old_value1->new_value1' as my_new_column
+),
+ACTUAL_DATA as (
+select tb1.id, tb1.my_column || '->' || tb2.my_column as my_new_column from ${MY_DB}.{MY_SECOND_SCHEMA}.MY_TABLE_1 tb_1
+join ${MY_DB}.{MY_SECOND_SCHEMA}.MY_TABLE_2 tb2 
+    on tb1.id = tb2.id
+),
+assertion as (
+	select count(1) as result, 'rows missing from actual data' as message from (
+		select * from actual_data
+		except 
+		select * from expected_data
+	) having result > 0
+	union 
+	select count(1) as result, 'rows missing from expected data' as message from ( 
+		select * from expected_data
+		except
+		select * from actual_data
+	) having result > 0
+)
+select * from assertion;
+```
+If this query returns any rows, then the test will fail. Otherwise, the test will pass.
+Currently, this tool supports unit testing for object types of Views and UDFs.
+For UDFs please refer the example scripts provided in the `example_scripts` directory.
+
+The test script should adhere to the following rules:
+1. The file name should match database object name with `_TEST` suffix.
+2. The file should be placed test directory with the same path as the corresponding object script.
+3. The test script should be single query with CTE expressions to mock the dependencies and expected data.
+4. Use the table name only as CTE name to mock data from that table.
+5. You can use `MOCK_DATA` as CTE name to define input data for UDFs.
+6. Your expected data should be in a CTE named `EXPECTED_DATA`.
+7. your expected data should have the same schema as the actual data returned by the database object.
+8. At the end of the test script you should have a select statement to select the actual data from the database object.
 ### Configurations
 #### Parameter profile
 Parameter files help you define parameters that change between different database instances. This is helpful if you have variables that change between different instances (like dev, staging and prod). 
@@ -176,10 +254,21 @@ scriptExclusion: # List of script files to be excluded from deploy, verify, roll
 dependencyOverride: # List of additional dependencies for the scripts
   - script: # script file name to override the dependencies 
     dependencies: List of dependencies to override
+connection:
+    account: # snowflake account name
+    user: # snowflake user name
+    password: # snowflake password
+    role: # snowflake role
+    warehouse: # snowflake warehouse
+    db: # snowflake database
+    schema: # snowflake schema
+    authenticator: # snowflake authenticator(optional)
  ```
 The `configTables` is used by create script module to add the data of the tables to the script file.
 The `scriptExclusion` is used to exclude the script files from being processed by this tool. 
 The `dependencyOverride` is used to override the dependencies of the script files. This can be used to add additional dependencies to the script files.
+The `connection` is used to configure the connection to snowflake account. 
+**Warning: Please use the connection property for local development and experimenting. Since the config file is checked in to your git repo please avoid adding any connection information to your config file. You can provide the connection details in environment variables.**
 ### How to use this tool
 In order to run the application you need to provide the snowflake connection parameters in environment variables. The following environment variables are required to run the application:
 ```
@@ -216,7 +305,7 @@ The deploy module can be triggered using the following command:
 ```
 dlsync deploy -s path/to/db_scripts -p dev
 ```
-If you have already deployed the changes manually or though other tools, you can can mark the scripts as deployed without deploying the changes. This will only add the hashes to the script history table(`dl_sync_script_history`) without affecting the current database state. This can be very helpful while migrating from other tools. 
+If you have already deployed the changes manually or though other tools, you can mark the scripts as deployed without deploying the changes. This will only add the hashes to the script history table(`dl_sync_script_history`) without affecting the current database state. This can be very helpful while migrating from other tools. 
 You can use the following command to mark the scripts as deployed without deploying the changes:
 ```
 dlsync deploy --only-hashes -s path/to/db_scripts -p dev
@@ -224,6 +313,12 @@ dlsync deploy --only-hashes -s path/to/db_scripts -p dev
 or
 ```
 dlsync deploy -o -s path/to/db_scripts -p dev
+```
+#### Test
+This module is used to run the unit tests for the database objects. It will run the test scripts for the database objects based on the script files.
+The test module can be triggered using the following command:
+```
+dlsync test -s path/to/db_scripts -p dev
 ```
 
 #### Rollback
@@ -286,7 +381,7 @@ start_time: the start time of the change
 end_time: the end time of the change
 ```
 ### dl_sync_script_event
-This table stores the logs of the each script activity. It contains the following columns:
+This table stores the logs of each script activity. It contains the following columns:
 ```
 id: the id of the script event
 script_id: the id of the script
