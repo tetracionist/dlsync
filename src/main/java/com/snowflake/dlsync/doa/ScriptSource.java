@@ -123,6 +123,10 @@ public class ScriptSource {
         }
         String database = extractDatabaseName(fullIdentifier);
         String schema = extractSchemaName(fullIdentifier);
+        if(database == null || schema == null) {
+            log.error("Error reading script: {}, database or schema not specified", file.getName());
+            throw new RuntimeException("Database, schema and object name must be provided in the script file.");
+        }
         Set<Script> scripts = new HashSet<>();
         if(objectType.isMigration()) {
             List<Migration> migrations = SqlTokenizer.parseMigrationScripts(content);
