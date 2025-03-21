@@ -97,7 +97,7 @@ public class ScriptSource {
                 File[] scriptFiles = scriptType.listFiles();
                 for(File file: scriptFiles) {
                     if(file.getName().toLowerCase().endsWith(".sql")){
-                       Set<Script> scriptsFromFile = buildScriptFromFile(file, scriptType);
+                       Set<Script> scriptsFromFile = SqlTokenizer.parseScript(file.getPath(), file.getName(), scriptType.getName(), Files.readString(file.toPath()));
                        scripts.addAll(scriptsFromFile);
                     }
                     else {
@@ -114,15 +114,15 @@ public class ScriptSource {
 
     public Set<Script> buildScriptFromFile(File file, File scriptType) throws IOException {
         String content = Files.readString(file.toPath());
-        String objectName = extractObjectName(file.getName(), content);
-        ScriptObjectType objectType = extractObjectType(scriptType.getName());
+        String objectName = SqlTokenizer.extractObjectName(file.getName(), content);
+        ScriptObjectType objectType = ScriptObjectType.valueOf(scriptType.getName());
         String fullIdentifier = SqlTokenizer.getFirstFullIdentifier(objectName, content);
         if(fullIdentifier == null || fullIdentifier.isEmpty()) {
             log.error("Error reading script: {}, name and content mismatch", file.getName());
             throw new RuntimeException("Object name and file name must match!");
         }
-        String database = extractDatabaseName(fullIdentifier);
-        String schema = extractSchemaName(fullIdentifier);
+        String database = SqlTokenizer.extractDatabaseName(fullIdentifier);
+        String schema = SqlTokenizer.extractSchemaName(fullIdentifier);
         if(database == null || schema == null) {
             log.error("Error reading script: {}, database or schema not specified", file.getName());
             throw new RuntimeException("Database, schema and object name must be provided in the script file.");
@@ -185,33 +185,6 @@ public class ScriptSource {
             log.error("Error in creating script: {}", e.getMessage());
             throw new RuntimeException(e);
         }
-    }
-
-    private ScriptObjectType extractObjectType(String objectType) {
-        return ScriptObjectType.valueOf(objectType);
-    }
-
-    private String extractObjectName(String fileName, String content) {
-        return fileName.split("\\.")[0].toUpperCase();
-    }
-
-    private String extractDatabaseName(String fullIdentifier) {
-        String[] names = fullIdentifier.split("\\.");
-        if(names.length < 3) {
-            return null;
-        }
-        return names[0];
-    }
-
-    private String extractSchemaName(String fullIdentifier) {
-        String[] names = fullIdentifier.split("\\.");
-        if(names.length == 3) {
-            return names[1];
-        }
-        else if(names.length == 2) {
-            return names[0];
-        }
-        return null;
     }
 
     private Script getScriptByName(List<Script> allScripts, String fullObjectName) {
