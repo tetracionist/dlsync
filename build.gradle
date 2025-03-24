@@ -30,7 +30,7 @@ dependencies {
 }
 
 group = 'com.snowflake'
-version = '1.0-SNAPSHOT'
+version = releaseVersion
 description = 'dlsync'
 java.sourceCompatibility = JavaVersion.VERSION_11
 
