@@ -1,0 +1,24 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release-action
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set variables
+        run: |
+          export VERSION=$(grep "^releaseVersion=" gradle.properties | awk -F"=" '{ print $2 }') 
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: setup git config
+        run: |
+          # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+      - name: tagging
+        run: |
+          git tag -a ${{ env.VERSION }}.test -m "version ${{ env.VERSION }}"
