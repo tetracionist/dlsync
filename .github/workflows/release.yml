@@ -22,3 +22,4 @@ jobs:
       - name: tagging
         run: |
           git tag -a ${{ env.VERSION }}.test -m "version ${{ env.VERSION }}"
+          git push origin ${{ env.VERSION }}.test
