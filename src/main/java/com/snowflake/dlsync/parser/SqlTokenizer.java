@@ -7,6 +7,9 @@ import com.snowflake.dlsync.models.Script;
 import com.snowflake.dlsync.models.ScriptObjectType;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,6 +60,41 @@ public class SqlTokenizer {
             migrations.add(migration);
         }
         return migrations;
+    }
+
+    public static Set<Script> parseScript(String filePath, String name, String scriptType, String content) {
+        String objectName = SqlTokenizer.extractObjectName(name, content);
+        ScriptObjectType objectType = ScriptObjectType.valueOf(scriptType);
+        String fullIdentifier = SqlTokenizer.getFirstFullIdentifier(objectName, content);
+        if(fullIdentifier == null || fullIdentifier.isEmpty()) {
+            log.error("Error reading script: {}, name and content mismatch", name);
+            throw new RuntimeException("Object name and file name must match!");
+        }
+        String database = SqlTokenizer.extractDatabaseName(fullIdentifier);
+        String schema = SqlTokenizer.extractSchemaName(fullIdentifier);
+        if(database == null || schema == null) {
+            log.error("Error reading script: {}, database or schema not specified", name);
+            throw new RuntimeException("Database, schema and object name must be provided in the script file.");
+        }
+        Set<Script> scripts = new HashSet<>();
+        if(objectType.isMigration()) {
+            List<Migration> migrations = SqlTokenizer.parseMigrationScripts(content);
+            for(Migration migration: migrations) {
+                MigrationScript script = ScriptFactory.getMigrationScript(database, schema, objectType, objectName, migration);
+//                Script script = new Script(database, schema, objectType, objectName, migration.getContent(), migration.getVersion(), migration.getAuthor(), migration.getRollback());
+                if(scripts.contains(script)) {
+                    log.error("Duplicate version {} for script {} found.", script.getVersion(), script);
+                    throw new RuntimeException("Duplicate version number is not allowed in the same script file.");
+                }
+                scripts.add(script);
+            }
+        }
+        else {
+            Script script = ScriptFactory.getStateScript(filePath, database, schema, objectType, objectName, content);
+//            Script script = new Script(database, schema, objectType, objectName, content);
+            scripts.add(script);
+        }
+        return scripts;
     }
 
     public static String removeSqlComments(String sql) {
@@ -200,6 +238,7 @@ public class SqlTokenizer {
     public static List<Script> parseDdlScripts(String ddl, String database, String schema) {
         Matcher matcher = Pattern.compile(DDL_REGEX, Pattern.CASE_INSENSITIVE).matcher(ddl);
         List<Script> scripts = new ArrayList<>();
+        log.debug("parsing ddl scripts {}", ddl);
         while(matcher.find()) {
             String content = matcher.group(1) + ";";
             String type = matcher.group("type");
@@ -306,6 +345,29 @@ public class SqlTokenizer {
             return query1.equals(query2);
         }
         return content1.equals(content2);
+    }
+
+    public static String extractObjectName(String fileName, String content) {
+        return fileName.split("\\.")[0].toUpperCase();
+    }
+
+    public static String extractDatabaseName(String fullIdentifier) {
+        String[] names = fullIdentifier.split("\\.");
+        if(names.length < 3) {
+            return null;
+        }
+        return names[0];
+    }
+
+    public static String extractSchemaName(String fullIdentifier) {
+        String[] names = fullIdentifier.split("\\.");
+        if(names.length == 3) {
+            return names[1];
+        }
+        else if(names.length == 2) {
+            return names[0];
+        }
+        return null;
     }
 
 }

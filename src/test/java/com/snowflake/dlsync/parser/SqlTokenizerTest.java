@@ -266,4 +266,28 @@ class SqlTokenizerTest {
         String actual = SqlTokenizer.removeSqlStringLiterals(sql);
         assertEquals(expected, actual, "Remove string literal assertion failed!");
     }
+
+    @Test
+    void parseScriptTypeStreamlit() {
+        String filePath = "db_scripts/db1/schema1/STREAMLITS/STREAMLIT1.SQL";
+        String name = "STREAMLIT1.SQL";
+        String scriptType = "STREAMLITS";
+        String content = "CREATE OR REPLACE STREAMLIT db1.schema1.STREAMLIT1 " +
+                "\troot_location='MY_STAGE'\n" +
+                "\tmain_file='/streamlit_app.py'\n" +
+                "\tquery_warehouse='${MY_WAREHOUSE}';";
+
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+
+        Script script = scripts.iterator().next();
+        assertEquals("STREAMLIT1", script.getObjectName(), "Object name should be VIEW1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.STREAMLITS, script.getObjectType(), "Object type should be VIEWS");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+
+    }
 }
