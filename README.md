@@ -2,6 +2,8 @@
 
 <img src="https://github.com/user-attachments/assets/24da3d86-f58e-4b55-8d9e-b3194117a566" height="300" title="logo" alt="logo">
 
+[![unit-test](https://github.com/Snowflake-Labs/dlsync/actions/workflows/test.yml/badge.svg)](https://github.com/Snowflake-Labs/dlsync/actions/workflows/test.yml)
+[![release](https://img.shields.io/github/release/Snowflake-Labs/dlsync.svg?style=flat)](https://github.com/Snowflake-Labs/dlsync/releases/latest)
 ---
 
 DLSync is a database change management tool designed to streamline the development and deployment of snowflake changes. 
@@ -339,10 +341,14 @@ To verify the changes use the following command:
 dlsync verify --script-root path/to/db_scripts --profile qa
 ```
 #### Create script
-This module is used to create script files for each database object. This can be used to create script files for the existing database objects. This might be helpful when you are migrating from other tools to DLSync. To achieve it first identifies the schemas inside the current database. Then for each schema retrieves the ddl of each object. Then based on the parameter profile provided it will replace the static values with the parameter keys. Then it will create the script file for each object. 
+This module is used to create script files from database. This can be used to create script files for the existing database objects. This might be helpful when you are migrating from other tools to DLSync. To achieve it first identifies the schemas inside the current database. Then for each schema retrieves the ddl of each object. Then based on the parameter profile provided it will replace the static values with the parameter keys. Then it will create the script file for each object. 
 If you have configuration tables where you want the data also to be included in the script file, you can provide the list of table names in the config file. 
 ```
 dlsync create_script --script-root path/to/db_scripts --profile uat
+```
+You can also provide the list of schemas you want to create the script files for. If you don't provide any schemas, it will create the script files for all schemas. 
+```
+dlsync create_script --script-root path/to/db_scripts --profile uat --target-schemas schema1,schema2
 ```
 
 ## Tables used by this tool

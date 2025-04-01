@@ -1,6 +1,11 @@
 # DLSync Changelog
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [2.3.0] - 2025-03-31
+### Added
+- Added support to specify target schemas for creating script from database
+- Added unit test for parsing object types
+
 ## [2.2.0] - 2025-03-24
 ### Added
 - Added support streamlit object type

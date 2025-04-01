@@ -14,7 +14,7 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) throws SQLException {
-        log.info("DlSync change Manager started.");
+        log.info("DlSync change Manager started with args: {}", Arrays.toString(args));
         ChangeManager changeManager = null;
         ChangeType changeType = null;
         boolean onlyHashes = false;
@@ -25,6 +25,7 @@ public class Main {
             onlyHashes = commandLine.hasOption("only-hashes");
             String scriptRoot = commandLine.getOptionValue("script-root");
             String profile = commandLine.getOptionValue("profile");
+            String targetSchemas = commandLine.getOptionValue("target-schemas");
             changeManager = ChangeMangerFactory.createChangeManger(scriptRoot, profile);
             switch (changeType) {
                 case DEPLOY:
@@ -44,7 +45,7 @@ public class Main {
                     }
                     break;
                 case CREATE_SCRIPT:
-                    changeManager.createAllScriptsFromDB();
+                    changeManager.createAllScriptsFromDB(targetSchemas);
                     log.info("DLsync created all scripts from DB.");
                     break;
                 case CREATE_LINEAGE:
@@ -97,6 +98,8 @@ public class Main {
             options.addOption(scriptRoot);
             Option profile = new Option("p", "profile", true, "Profile to use");
             options.addOption(profile);
+            Option targetSchemas = new Option("t", "target-schemas", true, "Comma separated list of schemas to use");
+            options.addOption(targetSchemas);
             CommandLine commandLine = new DefaultParser().parse(options, argsWithoutCommand);
             return commandLine;
         } catch (ParseException e) {

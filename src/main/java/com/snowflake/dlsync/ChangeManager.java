@@ -160,7 +160,7 @@ public class ChangeManager {
         return true;
     }
 
-    public void createAllScriptsFromDB() throws SQLException, IOException {
+    public void createAllScriptsFromDB(String targetSchemas) throws SQLException, IOException {
         log.info("Started create scripts.");
         startSync(ChangeType.CREATE_SCRIPT);
         HashSet<String> configTableWithParameter = new HashSet<>();
@@ -168,7 +168,13 @@ public class ChangeManager {
             configTableWithParameter.addAll(config.getConfigTables());
         }
         Set<String> configTables = parameterInjector.injectParameters(configTableWithParameter);
-        List<String> schemaNames = scriptRepo.getAllSchemasInDatabase(scriptRepo.getDatabaseName());
+        List<String> schemaNames = new ArrayList<>();
+        if(targetSchemas != null) {
+            schemaNames = Arrays.asList(targetSchemas.split(","));
+        }
+        else {
+            schemaNames = scriptRepo.getAllSchemasInDatabase(scriptRepo.getDatabaseName());
+        }
         int count = 0;
         for(String schema: schemaNames) {
             List<Script> scripts = scriptRepo.getAllScriptsInSchema(schema);

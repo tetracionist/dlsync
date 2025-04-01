@@ -2,6 +2,7 @@ package com.snowflake.dlsync.parser;
 
 import com.snowflake.dlsync.ScriptFactory;
 import com.snowflake.dlsync.models.Migration;
+import com.snowflake.dlsync.models.MigrationScript;
 import com.snowflake.dlsync.models.Script;
 import com.snowflake.dlsync.models.ScriptObjectType;
 import org.junit.jupiter.api.Test;
@@ -268,6 +269,227 @@ class SqlTokenizerTest {
     }
 
     @Test
+    void parseScriptTypeView() {
+        String filePath = "db_scripts/db1/schema1/VIEWS/VIEW1.SQL";
+        String name = "VIEW1.SQL";
+        String scriptType = "VIEWS";
+        String content = "CREATE OR REPLACE VIEW db1.schema1.VIEW1 AS SELECT * FROM table1;";
+
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+
+        Script script = scripts.iterator().next();
+        assertEquals("VIEW1", script.getObjectName(), "Object name should be VIEW1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.VIEWS, script.getObjectType(), "Object type should be VIEWS");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+    }
+
+    @Test
+    void parseScriptTypeFunction() {
+        String filePath = "db_scripts/db1/schema1/FUNCTIONS/FUNCTION1.SQL";
+        String name = "FUNCTION1.SQL";
+        String scriptType = "FUNCTIONS";
+        String content = "CREATE OR REPLACE FUNCTION db1.schema1.FUNCTION1() RETURNS STRING LANGUAGE JAVASCRIPT AS 'return \"Hello\";';";
+
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+
+        Script script = scripts.iterator().next();
+        assertEquals("FUNCTION1", script.getObjectName(), "Object name should be FUNCTION1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.FUNCTIONS, script.getObjectType(), "Object type should be FUNCTIONS");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+    }
+
+    @Test
+    void parseScriptTypeProcedure() {
+        String filePath = "db_scripts/db1/schema1/PROCEDURES/PROCEDURE1.SQL";
+        String name = "PROCEDURE1.SQL";
+        String scriptType = "PROCEDURES";
+        String content = "CREATE OR REPLACE PROCEDURE db1.schema1.PROCEDURE1() RETURNS STRING LANGUAGE JAVASCRIPT AS 'return \"Hello\";';";
+
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+
+        Script script = scripts.iterator().next();
+        assertEquals("PROCEDURE1", script.getObjectName(), "Object name should be PROCEDURE1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.PROCEDURES, script.getObjectType(), "Object type should be PROCEDURES");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+    }
+
+    @Test
+    void parseScriptTypeFileFormat() {
+        String filePath = "db_scripts/db1/schema1/FILE_FORMATS/FILE_FORMAT1.SQL";
+        String name = "FILE_FORMAT1.SQL";
+        String scriptType = "FILE_FORMATS";
+        String content = "CREATE OR REPLACE FILE FORMAT db1.schema1.FILE_FORMAT1 TYPE = 'CSV';";
+
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+
+        Script script = scripts.iterator().next();
+        assertEquals("FILE_FORMAT1", script.getObjectName(), "Object name should be FILE_FORMAT1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.FILE_FORMATS, script.getObjectType(), "Object type should be FILE_FORMATS");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+    }
+
+    @Test
+    void parseScriptTypeTable() {
+        String filePath = "db_scripts/db1/schema1/TABLES/TABLE1.SQL";
+        String name = "TABLE1.SQL";
+        String scriptType = "TABLES";
+        String content = "---version: 0, author: dlsync \n" +
+                "CREATE OR REPLACE TABLE db1.schema1.TABLE1 (id INT, name STRING);\n" +
+                "---rollback: drop table db1.schema1.TABLE1;\n" +
+                "---verify: select * from db1.schema1.TABLE1;";
+
+        String expected_rollback = "drop table db1.schema1.TABLE1;";
+        String expected_verify = "select * from db1.schema1.TABLE1;";
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+
+        MigrationScript script = (MigrationScript) scripts.iterator().next();
+        assertEquals(0, script.getVersion(), "Version should be 0");
+        assertEquals(expected_rollback, script.getRollback(), "Rollback should match the input content");
+        assertEquals(expected_verify, script.getVerify(), "Verify should match the input content");
+        assertEquals("TABLE1", script.getObjectName(), "Object name should be TABLE1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.TABLES, script.getObjectType(), "Object type should be TABLES");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+    }
+
+    @Test
+    void parseScriptTypeStream() {
+        String filePath = "db_scripts/db1/schema1/STREAMS/STREAM1.SQL";
+        String name = "STREAM1.SQL";
+        String scriptType = "STREAMS";
+
+        String content = "---version: 0, author: dlsync \n" +
+                "CREATE OR REPLACE STREAM db1.schema1.STREAM1 ON TABLE db1.schema1.TABLE1;\n" +
+                "---rollback: drop stream db1.schema1.STREAM1;\n" +
+                "---verify: select * from db1.schema1.STREAM1;";
+
+        String expected_rollback = "drop stream db1.schema1.STREAM1;";
+        String expected_verify = "select * from db1.schema1.STREAM1;";
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+
+        MigrationScript script = (MigrationScript) scripts.iterator().next();
+        assertEquals(0, script.getVersion(), "Version should be 0");
+        assertEquals(expected_rollback, script.getRollback(), "Rollback should match the input content");
+        assertEquals(expected_verify, script.getVerify(), "Verify should match the input content");
+        assertEquals("STREAM1", script.getObjectName(), "Object name should be STREAM1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.STREAMS, script.getObjectType(), "Object type should be STREAMS");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+    }
+
+    @Test
+    void parseScriptTypeSequence() {
+        String filePath = "db_scripts/db1/schema1/SEQUENCES/SEQUENCE1.SQL";
+        String name = "SEQUENCE1.SQL";
+        String scriptType = "SEQUENCES";
+        String content = "---version: 0, author: dlsync \n" +
+                "CREATE OR REPLACE SEQUENCE db1.schema1.SEQUENCE1 START WITH 1 INCREMENT BY 1;\n" +
+                "---rollback: drop sequence db1.schema1.SEQUENCE1;\n" +
+                "---verify: select * from db1.schema1.SEQUENCE1;";
+
+        String expected_rollback = "drop sequence db1.schema1.SEQUENCE1;";
+        String expected_verify = "select * from db1.schema1.SEQUENCE1;";
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+
+        MigrationScript script = (MigrationScript) scripts.iterator().next();
+        assertEquals(0, script.getVersion(), "Version should be 0");
+        assertEquals(expected_rollback, script.getRollback(), "Rollback should match the input content");
+        assertEquals(expected_verify, script.getVerify(), "Verify should match the input content");
+        assertEquals("SEQUENCE1", script.getObjectName(), "Object name should be SEQUENCE1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.SEQUENCES, script.getObjectType(), "Object type should be SEQUENCES");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+    }
+
+    @Test
+    void parseScriptTypeStage() {
+        String filePath = "db_scripts/db1/schema1/STAGES/STAGE1.SQL";
+        String name = "STAGE1.SQL";
+        String scriptType = "STAGES";
+        String content = "---version: 0, author: dlsync \n" +
+                "CREATE OR REPLACE STAGE db1.schema1.STAGE1 URL='s3://mybucket/mypath/';\n" +
+                "---rollback: drop stage db1.schema1.STAGE1;\n" +
+                "---verify: list @db1.schema1.STAGE1;";
+
+        String expected_rollback = "drop stage db1.schema1.STAGE1;";
+        String expected_verify = "list @db1.schema1.STAGE1;";
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+
+        MigrationScript script = (MigrationScript) scripts.iterator().next();
+        assertEquals(0, script.getVersion(), "Version should be 0");
+        assertEquals(expected_rollback, script.getRollback(), "Rollback should match the input content");
+        assertEquals(expected_verify, script.getVerify(), "Verify should match the input content");
+        assertEquals("STAGE1", script.getObjectName(), "Object name should be STAGE1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.STAGES, script.getObjectType(), "Object type should be STAGES");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+    }
+
+    @Test
+    void parseScriptTypeTask() {
+        String filePath = "db_scripts/db1/schema1/TASKS/TASK1.SQL";
+        String name = "TASK1.SQL";
+        String scriptType = "TASKS";
+        String content = "---version: 0, author: dlsync \n" +
+                "CREATE OR REPLACE TASK db1.schema1.TASK1 WAREHOUSE = 'my_warehouse' SCHEDULE = 'USING CRON 0 0 * * * UTC' AS CALL my_procedure();\n" +
+                "---rollback: drop task db1.schema1.TASK1;\n" +
+                "---verify: select * from db1.schema1.TASK1;";
+
+        String expected_rollback = "drop task db1.schema1.TASK1;";
+        String expected_verify = "select * from db1.schema1.TASK1;";
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+
+        MigrationScript script = (MigrationScript) scripts.iterator().next();
+        assertEquals(0, script.getVersion(), "Version should be 0");
+        assertEquals(expected_rollback, script.getRollback(), "Rollback should match the input content");
+        assertEquals(expected_verify, script.getVerify(), "Verify should match the input content");
+        assertEquals("TASK1", script.getObjectName(), "Object name should be TASK1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.TASKS, script.getObjectType(), "Object type should be TASKS");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+    }
+
+    @Test
     void parseScriptTypeStreamlit() {
         String filePath = "db_scripts/db1/schema1/STREAMLITS/STREAMLIT1.SQL";
         String name = "STREAMLIT1.SQL";
@@ -290,4 +512,6 @@ class SqlTokenizerTest {
         assertEquals(content, script.getContent(), "Script content should match the input content");
 
     }
+
+
 }

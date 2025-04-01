@@ -5,8 +5,7 @@ import com.snowflake.dlsync.models.ChangeType;
 import org.apache.commons.cli.*;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MainTest {
 
@@ -80,6 +79,37 @@ public class MainTest {
         String[] args8 = {"DEploy", "--only-hashes"};
         changeType = Main.getChangeType(args8);
         assertTrue(changeType == ChangeType.DEPLOY);
+    }
+
+    @Test
+    void testTargetSchema() throws ParseException {
+        String[] args = {"create_script", "--target-schemas", "schema1,schema2"};
+        CommandLine commandLine = Main.buildCommandOptions(args);
+        assertTrue(commandLine.hasOption("--target-schemas"));
+        assertTrue(commandLine.getOptionValue("target-schemas").equals("schema1,schema2"));
+
+        String[] args1 = {"create_script", "-t", "schema1,schema2"};
+        commandLine = Main.buildCommandOptions(args);
+        assertTrue(commandLine.hasOption("--target-schemas"));
+        assertTrue(commandLine.getOptionValue("target-schemas").equals("schema1,schema2"));
+
+        String[] args2 = {"create_script", "--script-root", "test/scripts", "--profile", "prod", "--target-schemas", "schema1,schema2"};
+        commandLine = Main.buildCommandOptions(args2);
+        assertTrue(commandLine.hasOption("--target-schemas"));
+        assertTrue(commandLine.getOptionValue("target-schemas").equals("schema1,schema2"));
+
+        String[] args3 = {"create_script", "--target-schemas"};
+        assertThrows(MissingArgumentException.class,  () -> Main.buildCommandOptions(args3));
+
+        String[] args4 = {"create_script", "--script-root", "test/scripts", "--profile", "prod"};
+        commandLine = Main.buildCommandOptions(args4);
+        assertTrue(!commandLine.hasOption("--target-schemas"));
+        assertTrue(commandLine.getOptionValue("--target-schemas") == null);
+
+        String[] args5 = {"create_script", "-s", "captured_scripts", "-p", "qa", "-t", "schema1,schema2"};
+        commandLine = Main.buildCommandOptions(args5);
+        assertTrue(commandLine.hasOption("--target-schemas"));
+        assertEquals(commandLine.getOptionValue("--target-schemas"), "schema1,schema2");
     }
 
 
