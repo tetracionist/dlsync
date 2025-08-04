@@ -253,7 +253,7 @@ The config file is used to configure the behavior of this tool. The config file 
 version: #version of the config file
 configTables:  # List of configuration tables, only used for create script module
 scriptExclusion: # List of script files to be excluded from deploy, verify, rollback and create script module
-continueOnFailure: "true" # or "false" - "true" or "false, controls the error disposition of the tool.
+continueOnFailure: "true" # "true" or "false, controls the error disposition of the tool.
 dependencyOverride: # List of additional dependencies for the scripts
   - script: # script file name to override the dependencies 
     dependencies: List of dependencies to override
