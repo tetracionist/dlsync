@@ -84,6 +84,7 @@ public class ChangeManager {
             log.error(errorMsg);
             log.error("Failed scripts: {}", String.join(", ", failedScripts));
             endSyncError(ChangeType.DEPLOY, errorMsg);
+            throw new RuntimeException(errorMsg);
         } else {
             endSyncSuccess(ChangeType.DEPLOY, (long)sequencedScript.size());
         }
