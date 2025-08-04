@@ -26,6 +26,7 @@ public class ChangeManager {
 
     public ChangeManager(Config config, ScriptSource scriptSource, ScriptRepo scriptRepo, DependencyGraph dependencyGraph, ParameterInjector parameterInjector) {
         this.config= config;
+        this.continueOnFailure = config.isContinueOnFailure(); 
         this.scriptSource = scriptSource;
         this.scriptRepo = scriptRepo;
         this.dependencyGraph = dependencyGraph;
