@@ -22,22 +22,27 @@ public class ChangeManager {
     private ScriptRepo scriptRepo;
     private DependencyGraph dependencyGraph;
     private ParameterInjector parameterInjector;
+    private boolean continueOnFailure = false;
 
     public ChangeManager(Config config, ScriptSource scriptSource, ScriptRepo scriptRepo, DependencyGraph dependencyGraph, ParameterInjector parameterInjector) {
         this.config= config;
+        this.continueOnFailure = config.isContinueOnFailure(); 
         this.scriptSource = scriptSource;
         this.scriptRepo = scriptRepo;
         this.dependencyGraph = dependencyGraph;
         this.parameterInjector = parameterInjector;
     }
 
+   public void setContinueOnFailure(boolean continueOnFailure) {
+        this.continueOnFailure = continueOnFailure;
+    }
     private void validateScript(Script script) {
         if(script instanceof MigrationScript && scriptRepo.isScriptVersionDeployed(script)) {
             log.error("Migration type script changed. Script for the object {} has changed from previous deployments.", script.getId());
             throw new RuntimeException("Migration type scripts should not change.");
         }
     }
-    public void deploy(boolean onlyHashes) throws SQLException, IOException, NoSuchAlgorithmException{
+    public void deploy(boolean onlyHashes) throws SQLException, IOException, NoSuchAlgorithmException {
         log.info("Started Deploying {}", onlyHashes?"Only Hashes":"scripts");
         startSync(ChangeType.DEPLOY);
         scriptRepo.loadScriptHash();
@@ -49,15 +54,39 @@ public class ChangeManager {
         dependencyGraph.addNodes(changedScripts);
         List<Script> sequencedScript = dependencyGraph.topologicalSort();
         log.info("Deploying {} change scripts to db.", sequencedScript.size());
+        
         int size = sequencedScript.size();
         int index = 1;
+        int failedCount = 0; 
+        List<String> failedScripts = new ArrayList<>(); 
+        
         for(Script script: sequencedScript) {
             log.info("{} of {}: Deploying object: {}", index++, size, script);
-            parameterInjector.injectParameters(script);
-            validateScript(script);
-            scriptRepo.createScriptObject(script, onlyHashes);
+            
+            try {  
+                parameterInjector.injectParameters(script);
+                validateScript(script);
+                scriptRepo.createScriptObject(script, onlyHashes);
+            } catch (Exception e) {  
+                failedCount++;
+                failedScripts.add(script.getId()); 
+                log.error("Failed to deploy script {}: {}", script.getId(), e.getMessage());
+                
+                if (!continueOnFailure) {  
+                    // throw the error as normal
+                    throw e;
+                }
+                // Continue-on-failure: log error but continue loop, useful for bigger projects
+            }
         }
-        endSyncSuccess(ChangeType.DEPLOY, (long)sequencedScript.size());
+        if (failedCount > 0) {
+            String errorMsg = String.format("Deployment completed with %d failures", failedCount);
+            log.error(errorMsg);
+            log.error("Failed scripts: {}", String.join(", ", failedScripts));
+            endSyncError(ChangeType.DEPLOY, errorMsg);
+        } else {
+            endSyncSuccess(ChangeType.DEPLOY, (long)sequencedScript.size());
+        }
     }
 
     public void rollback() throws SQLException, IOException {
