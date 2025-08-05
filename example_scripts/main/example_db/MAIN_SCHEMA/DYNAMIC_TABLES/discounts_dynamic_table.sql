@@ -1,0 +1,16 @@
+---version: 0, author: DlSync
+CREATE OR REPLACE DYNAMIC TABLE ${EXAMPLE_DB}.${MAIN_SCHEMA}.discounts_dynamic_table
+  TARGET_LAG = '1 day'
+  WAREHOUSE = compute_wh
+  REFRESH_MODE = auto
+  INITIALIZE = on_create
+  AS
+    SELECT 
+        ID,
+        PRODUCT_ID,
+        DISCOUNT_RATE,
+        VALID_FROM,
+        VALID_UNTIL
+    FROM ${EXAMPLE_DB}.${MAIN_SCHEMA}.DISCOUNTS;
+---rollback: DROP DYNAMIC TABLE IF EXISTS ${EXAMPLE_DB}.${MAIN_SCHEMA}.DISCOUNTS;
+---verify: SELECT * FROM ${EXAMPLE_DB}.${MAIN_SCHEMA}.DISCOUNTS LIMIT 1;
