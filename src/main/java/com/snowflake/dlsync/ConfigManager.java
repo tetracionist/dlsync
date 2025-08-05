@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class ConfigManager {
     private final static String CONFIG_FILE_NAME = "config.yaml";
-    private final static String[] JDBC_KEY = {"url", "account", "user", "password", "authenticator", "role", "warehouse", "db", "schema"};
+    private final static String[] JDBC_KEY = {"url", "account", "user", "password", "authenticator", "role", "warehouse", "db", "schema",  "privatekey", "private_key_file"};
     private final static String SCRIPT_ROOT_KEY = "SCRIPT_ROOT";
     private String scriptRoot;
     private String profile;

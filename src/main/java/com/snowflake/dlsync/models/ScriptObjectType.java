@@ -1,7 +1,7 @@
 package com.snowflake.dlsync.models;
 
 public enum ScriptObjectType {
-    VIEWS("VIEW"),FUNCTIONS("FUNCTION"),PROCEDURES("PROCEDURE"),FILE_FORMATS("FILE FORMAT"),TABLES("TABLE"),STREAMS("STREAM"),SEQUENCES("SEQUENCE"),STAGES("STAGE"),TASKS("TASK"),STREAMLITS("STREAMLIT");
+    VIEWS("VIEW"),FUNCTIONS("FUNCTION"),PROCEDURES("PROCEDURE"),FILE_FORMATS("FILE FORMAT"),TABLES("TABLE"),STREAMS("STREAM"),SEQUENCES("SEQUENCE"),STAGES("STAGE"),TASKS("TASK"),STREAMLITS("STREAMLIT"),PIPES("PIPE"),DYNAMIC_TABLES("DYNAMIC TABLE");
 
     private final String singular;
     private ScriptObjectType(String type) {
@@ -20,6 +20,7 @@ public enum ScriptObjectType {
             case SEQUENCES:
             case STAGES:
             case TASKS:
+            case DYNAMIC_TABLES:
                 return true;
             default:
                 return false;
