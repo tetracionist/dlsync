@@ -66,7 +66,7 @@ Inside this directory create a directory structure like:
 Where 
 - **database_name_*:** is the database name of your project, 
 - **schema_name_*:** are schemas inside the database, 
-- **object_type:** is type of the object only 1 of the following (VIEWS, FUNCTIONS, PROCEDURES, FILE_FORMATS, TABLES, SEQUENCES, STAGES, STREAMS, TASKS)
+- **object_type:** is type of the object only 1 of the following (VIEWS, FUNCTIONS, PROCEDURES, FILE_FORMATS, TABLES, SEQUENCES, STAGES, STREAMS, TASKS, STREAMLITS, PIPES, ALERTS)
 - **object_name_*.sql:** are individual database object scripts.
 - **config.yml:** is a configuration file used to configure DLSync behavior.
 - **parameter-[profile-*].properties:** is parameter to value map file. This is going to be used by corresponding individual instances of your database.
@@ -95,7 +95,7 @@ eg: view named SAMPLE_VIEW can have the following SQL statement in the `SAMPLE_V
 create or replace view ${MY_DB}.{MY_SCHEMA}.SAMPLE_VIEW as select * from ${MY_DB}.{MY_SECOND_SCHEMA}.MY_TABLE;
 ```
 #### 2. Migration Script
-This type of script is used for object types of TABLES, SEQUENCES, STAGES, STREAMS and TASKS.
+This type of script is used for object types of TABLES, SEQUENCES, STAGES, STREAMS, TASKS and ALERTS.
 Here the script is treated as migration that will be applied to the object sequentially based on the version number. 
 This type of script contains 1 or more migration versions. One migration versions contains version number, author(optional), content (DDL or DML SQL statement) , rollback statement(optional) and verify statement(optional).
 Each migration version is immutable i.e Once the version is deployed you can not change the code of this version. Only you can add new versions.
