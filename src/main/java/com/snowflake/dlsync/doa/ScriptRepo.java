@@ -589,6 +589,11 @@ public class ScriptRepo {
 
     Set<String> excludedDatabases = Set.of("SNOWFLAKE", "SNOWFLAKE_SAMPLE_DATA");
     Set<String> excludedSchemas = Set.of("INFORMATION_SCHEMA", "PG_CATALOG", "PERFORMANCE_SCHEMA");
+    Set<String> excludedObjects = Set.of(
+    "DL_SYNC_SCRIPT_HISTORY",
+    "DL_SYNC_CHANGE_SYNC",
+    "DL_SYNC_SCRIPT_EVENT"
+);
 
     try (Statement dbStmt = connection.createStatement();
          ResultSet dbRs = dbStmt.executeQuery("SHOW DATABASES")) {
@@ -617,8 +622,13 @@ public class ScriptRepo {
                     if (excludedSchemas.contains(schemaName.toUpperCase())) {
                         continue; // skip excluded schemas
                     }
+                    
 
                     String tableName = objRs.getString(2);
+
+                    if (excludedObjects.contains(tableName.toUpperCase())) {
+                        continue; // skip excluded schemas
+                    }
                     String fullName = databaseName + "." + schemaName + "." + tableName;
                     allObjects.add(fullName);
                 }
@@ -632,17 +642,12 @@ public class ScriptRepo {
     return allObjects;
 }
 
-public List<String> findMissingInScriptSource(List<String> snowflakeObjects, List<Script> scriptObjects) {
+public List<String> findMissingInScriptSource(List<String> snowflakeObjects, List<Script> scripts) {
     // Use a HashSet for fast lookups
-    Set<String> scriptSet = new HashSet<>(scriptObjects.size());
+    Set<String> scriptSet = new HashSet<>(scripts.size());
 
-    for (Script script : scriptObjects) {
-        String objectName = script.getFullObjectName();
-        if (objectName != null) {
-            scriptSet.add(objectName.toUpperCase()); // normalize for comparison
-        }
-
-        log.info(objectName);
+    for (Script script : scripts) {
+        scriptSet.add(script.getFullObjectName().toUpperCase());
     }
 
     List<String> missing = new ArrayList<>();
@@ -655,27 +660,7 @@ public List<String> findMissingInScriptSource(List<String> snowflakeObjects, Lis
     return missing;
 }
 
-public void resolveAndSetScriptObjectName(Script script) {
-    String rawName = script.getFullObjectName(); // e.g., "${EXAMPLE_DB}.${MAIN_SCHEMA}.MY_TABLE"
-    String resolvedName = injectParameters(rawName); // Replaces parameters
 
-    if (resolvedName == null || !resolvedName.contains(".")) {
-        log.warn("Cannot resolve object name for script: {}", rawName);
-        return;
-    }
-
-    String[] parts = resolvedName.split("\\.");
-    if (parts.length != 3) {
-        log.warn("Invalid object name format (expected 3 parts): {}", resolvedName);
-        return;
-    }
-
-    script.setDatabaseName(parts[0]);
-    script.setSchemaName(parts[1]);
-    script.setObjectName(parts[2]);
-
-    log.debug("Resolved Script: {} → {}.{}.{}", rawName, parts[0], parts[1], parts[2]);
-}
 
 
 

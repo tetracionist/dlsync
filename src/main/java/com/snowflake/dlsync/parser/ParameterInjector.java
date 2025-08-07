@@ -110,5 +110,28 @@ public class ParameterInjector {
             return config;
         }).collect(Collectors.toSet());
     }
+    public String parameterizeSnowflakeObjectName(String objectName) {
+
+        String[] parts = objectName.split("\\.");
+
+        String schemaName = parts[1];
+        String databaseName = parts[0];
+        String objectOnlyName = parts[2];
+
+        List<String> parameterKeys = parameters.stringPropertyNames().stream().sorted().collect(Collectors.toList());
+        for(String parameter: parameterKeys) {
+            String parameterPlaceholder = String.format(PARAMETER_FORMAT, parameter);
+            String regex = "(?i)" + Pattern.quote(parameters.getProperty(parameter));
+            String replacement = Matcher.quoteReplacement(parameterPlaceholder);
+            schemaName = schemaName.replaceAll(regex, replacement);
+            databaseName = databaseName.replaceAll(regex, replacement);
+        }
+
+        return String.format("%s.%s.%s", databaseName, schemaName, objectOnlyName);
+       
+    }
+
 
 }
+
+    

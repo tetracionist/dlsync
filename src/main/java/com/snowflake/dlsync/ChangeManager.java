@@ -257,7 +257,13 @@ public class ChangeManager {
         List<String> snowflakeObjects = scriptRepo.getAllObjectsInSnowflake();
         List<Script> scriptObjects = scriptSource.getAllScripts();
 
-        List<String> missing = scriptRepo.findMissingInScriptSource(snowflakeObjects, scriptObjects);
+        List<String> parameterizedObjectNames = snowflakeObjects.stream()
+    .map(parameterInjector::parameterizeSnowflakeObjectName)
+    .collect(Collectors.toList());
+
+
+
+        List<String> missing = scriptRepo.findMissingInScriptSource(parameterizedObjectNames, scriptObjects);
 
         if (!missing.isEmpty()) {
             log.warn("Missing objects in script source ({}):", missing.size());
@@ -268,7 +274,7 @@ public class ChangeManager {
             log.info("No missing objects found.");
         }
 
-        endSyncSuccess(ChangeType.CLEANUP, (long)snowflakeObjects.size());
+        endSyncSuccess(ChangeType.CLEANUP, (long)missing.size());
     }
 
     public void startSync(ChangeType changeType) throws SQLException {
