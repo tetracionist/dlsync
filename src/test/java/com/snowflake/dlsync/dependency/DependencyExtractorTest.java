@@ -365,5 +365,25 @@ class DependencyExtractorTest {
         assertEquals(expected, actual, "Dependency extractor failed:");
     }
 
+    @Test
+    void extractScriptDependenciesIdentifierInQuotes() {
+        String content = "create or replace streamlit TEST_SCHEMA1.STREAMLIT_1\n" +
+                "root_location='@TEST_SCHEMA2.STAGE1'\n" +
+                "\tmain_file='/streamlit_app.py'\n" +
+                "\tquery_warehouse='${MY_WAREHOUSE}'";
+        Script script = ScriptFactory.getStateScript("TEST_DB", "TEST_SCHEMA1", ScriptObjectType.STREAMLITS, "STREAMLIT_1", content);
+        Script dependency1 = ScriptFactory.getMigrationScript("TEST_DB", "TEST_SCHEMA2", ScriptObjectType.STAGES, "STAGE1", "---version: 1, author: dlsync\nCREATE OR REPLACE STAGE TEST_SCHEMA2.STAGE1;", 1L, "dlsync", "", "");
+        List<Script> changedScript = mockScripts();
+        changedScript.add(script);
+        changedScript.add(dependency1);
+        dependencyExtractor.addScripts(changedScript);
+        Set<Script> expected = Set.of(
+                dependency1
+        );
+        Set<Script> actual = dependencyExtractor.extractScriptDependencies(script);
+        assertEquals(expected, actual, "Dependency extractor failed:");
+
+    }
+
 
 }

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class SqlTokenizer {
-    private static final String TOKEN_START_REGEX = "(?:[=()\\[\\],\\.\\s\\\"\\'])";
+    private static final String TOKEN_START_REGEX = "(?:[@=()\\[\\],\\.\\s\\\"\\'])";
     private static final String TOKEN_END_REGEX = "(?:[=()\\[\\],\\.\\s\\\"\\';]|$)";
     private static final char[] TOKENS = {'.', ',', ';', '"', '\'', '[', ']', '(', ')'};
     private static  final String MIGRATION_HEADER = "(\\s*---\\s*(?i)version\\s*:\\s*(?<version>\\d+)\\s*)(,\\s*(?i)author\\s*:\\s*(?<author>\\w+)\\s*)?";
@@ -31,7 +31,7 @@ public class SqlTokenizer {
 
     private static final String DDL_REGEX = ";\\n+(CREATE\\s+OR\\s+REPLACE\\s+(TRANSIENT\\s|HYBRID\\s|SECURE\\s)?(?<type>FILE FORMAT|\\w+)\\s+(?<name>[\\w.]+)([\\s\\S]+?)(?=(;\\nCREATE\\s+)|(;$)))";
 
-    private static final String STRING_LITERAL_REGEX = "(?<!as\\s{1,5})'([^'\\\\]*(?:\\\\.[^'\\\\]*)*(?:''[^'\\\\]*)*)'";
+    private static final String STRING_LITERAL_REGEX = "(?<!as\\s{1,5})(?<!=\\s{0,5})'([^'\\\\]*(?:\\\\.[^'\\\\]*)*(?:''[^'\\\\]*)*)'";
 
     private static final String VIEW_BODY_REGEX = "(CREATE\\s+OR\\s+REPLACE\\s+VIEW\\s+)(?<name>[\\w.${}]+)(\\s*\\([^\\)]+\\))?\\s+AS\\s+(?<body>[\\s\\S]+)$";
     private static final String FUNCTION_BODY_REGEX = "(CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+)(?<name>[\\w.${}]+)(?:[\\s\\S]*?AS\\s+('|\\$\\$)\\s*)(?<body>[\\s\\S]+)('|\\$\\$)\\s*;$";
