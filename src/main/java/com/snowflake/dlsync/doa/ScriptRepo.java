@@ -581,5 +581,106 @@ public class ScriptRepo {
             return testResults;
         }
     }
+
+    public List<String> getAllObjectsInSnowflake() throws SQLException {
+    List<String> allObjects = new ArrayList<>();
+
+    System.out.println(connection.getCatalog());
+
+    Set<String> excludedDatabases = Set.of("SNOWFLAKE", "SNOWFLAKE_SAMPLE_DATA");
+    Set<String> excludedSchemas = Set.of("INFORMATION_SCHEMA", "PG_CATALOG", "PERFORMANCE_SCHEMA");
+
+    try (Statement dbStmt = connection.createStatement();
+         ResultSet dbRs = dbStmt.executeQuery("SHOW DATABASES")) {
+
+        while (dbRs.next()) {
+            String databaseName = dbRs.getString("name");
+
+            if (excludedDatabases.contains(databaseName.toUpperCase())) {
+                continue;
+            }
+
+            System.out.println("Searching in database: " + databaseName);
+
+            // Query all tables in the database
+            String objectQuery = String.format(
+                "SELECT table_schema, table_name FROM %s.INFORMATION_SCHEMA.TABLES",
+                databaseName
+            );
+
+            try (Statement objStmt = connection.createStatement();
+                 ResultSet objRs = objStmt.executeQuery(objectQuery)) {
+
+                while (objRs.next()) {
+                    String schemaName = objRs.getString(1);
+
+                    if (excludedSchemas.contains(schemaName.toUpperCase())) {
+                        continue; // skip excluded schemas
+                    }
+
+                    String tableName = objRs.getString(2);
+                    String fullName = databaseName + "." + schemaName + "." + tableName;
+                    allObjects.add(fullName);
+                }
+
+            } catch (SQLException e) {
+                System.err.printf("Failed to read tables from %s: %s%n", databaseName, e.getMessage());
+            }
+        }
+    }
+
+    return allObjects;
+}
+
+public List<String> findMissingInScriptSource(List<String> snowflakeObjects, List<Script> scriptObjects) {
+    // Use a HashSet for fast lookups
+    Set<String> scriptSet = new HashSet<>(scriptObjects.size());
+
+    for (Script script : scriptObjects) {
+        String objectName = script.getFullObjectName();
+        if (objectName != null) {
+            scriptSet.add(objectName.toUpperCase()); // normalize for comparison
+        }
+
+        log.info(objectName);
+    }
+
+    List<String> missing = new ArrayList<>();
+    for (String object : snowflakeObjects) {
+        if (!scriptSet.contains(object.toUpperCase())) {
+            missing.add(object);
+        }
+    }
+
+    return missing;
+}
+
+public void resolveAndSetScriptObjectName(Script script) {
+    String rawName = script.getFullObjectName(); // e.g., "${EXAMPLE_DB}.${MAIN_SCHEMA}.MY_TABLE"
+    String resolvedName = injectParameters(rawName); // Replaces parameters
+
+    if (resolvedName == null || !resolvedName.contains(".")) {
+        log.warn("Cannot resolve object name for script: {}", rawName);
+        return;
+    }
+
+    String[] parts = resolvedName.split("\\.");
+    if (parts.length != 3) {
+        log.warn("Invalid object name format (expected 3 parts): {}", resolvedName);
+        return;
+    }
+
+    script.setDatabaseName(parts[0]);
+    script.setSchemaName(parts[1]);
+    script.setObjectName(parts[2]);
+
+    log.debug("Resolved Script: {} → {}.{}.{}", rawName, parts[0], parts[1], parts[2]);
+}
+
+
+
+
+
+
 }
 

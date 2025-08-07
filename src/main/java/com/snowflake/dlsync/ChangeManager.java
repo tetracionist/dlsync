@@ -243,6 +243,34 @@ public class ChangeManager {
         endSyncSuccess(ChangeType.TEST, (long)size);
     }
 
+    public void cleanup() throws SQLException, IOException {
+        log.info("Started Cleanup module.");
+        startSync(ChangeType.CLEANUP);
+
+        // First get all the scripts that we can find in source control 
+        // List<Script> scripts = scriptSource.getAllScripts();
+
+        // for (Script script : scripts) {
+        //     log.info("Script details: {}", script); // Assumes Script class has a meaningful toString()
+        // }
+
+        List<String> snowflakeObjects = scriptRepo.getAllObjectsInSnowflake();
+        List<Script> scriptObjects = scriptSource.getAllScripts();
+
+        List<String> missing = scriptRepo.findMissingInScriptSource(snowflakeObjects, scriptObjects);
+
+        if (!missing.isEmpty()) {
+            log.warn("Missing objects in script source ({}):", missing.size());
+            for (String obj : missing) {
+                log.warn("  - {}", obj);
+            }
+        } else {
+            log.info("No missing objects found.");
+        }
+
+        endSyncSuccess(ChangeType.CLEANUP, (long)snowflakeObjects.size());
+    }
+
     public void startSync(ChangeType changeType) throws SQLException {
         scriptRepo.insertChangeSync(changeType, Status.IN_PROGRESS, changeType.toString() + " started.");
     }
