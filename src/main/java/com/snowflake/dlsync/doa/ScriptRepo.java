@@ -210,7 +210,7 @@ public class ScriptRepo {
         try {
             connection.setAutoCommit(false);
             if(!onlyHashes) {
-                statement.executeUpdate(script.getContent());
+                statement.execute(script.getContent());
                 log.debug("Creating object using the SQL: {}", script.getContent());
             }
             updateScriptHash(script);

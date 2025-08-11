@@ -1,6 +1,13 @@
 # DLSync Changelog
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [2.4.0] - 2025-08-11
+### Added
+- Add support for 'PIPE' object type Deployment
+- Add support for 'ALERT' object type Deployment
+- Add feature toggle to configuration YAML to allow change to error disposition (fail deployment on first deployment tree error or continue after each error to try other items for deployment, logging and collecting all errors in the console.)
+
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [2.3.0] - 2025-03-31
 ### Added
 - Added support to specify target schemas for creating script from database
