@@ -1,7 +1,7 @@
 CREATE OR REPLACE PROCEDURE ${EXAMPLE_DB}.${MAIN_SCHEMA}.UPDATE_ORDER_SUMMARY()
   returns string not null
   language python
-  runtime_version = '3.8'
+  runtime_version = '3.11'
   packages = ('snowflake-snowpark-python')
   handler = 'main'
   execute as caller
