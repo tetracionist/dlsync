@@ -22,20 +22,15 @@ public class ChangeManager {
     private ScriptRepo scriptRepo;
     private DependencyGraph dependencyGraph;
     private ParameterInjector parameterInjector;
-    private boolean continueOnFailure = false;
 
     public ChangeManager(Config config, ScriptSource scriptSource, ScriptRepo scriptRepo, DependencyGraph dependencyGraph, ParameterInjector parameterInjector) {
         this.config= config;
-        this.continueOnFailure = config.isContinueOnFailure(); 
         this.scriptSource = scriptSource;
         this.scriptRepo = scriptRepo;
         this.dependencyGraph = dependencyGraph;
         this.parameterInjector = parameterInjector;
     }
 
-   public void setContinueOnFailure(boolean continueOnFailure) {
-        this.continueOnFailure = continueOnFailure;
-    }
     private void validateScript(Script script) {
         if(script instanceof MigrationScript && scriptRepo.isScriptVersionDeployed(script)) {
             log.error("Migration type script changed. Script for the object {} has changed from previous deployments.", script.getId());
@@ -67,12 +62,13 @@ public class ChangeManager {
                 parameterInjector.injectParameters(script);
                 validateScript(script);
                 scriptRepo.createScriptObject(script, onlyHashes);
-            } catch (Exception e) {  
+            }
+            catch (Exception e) {
                 failedCount++;
                 failedScripts.add(script.getId()); 
                 log.error("Failed to deploy script {}: {}", script.getId(), e.getMessage());
                 
-                if (!continueOnFailure) {  
+                if (!config.isContinueOnFailure()) {
                     // throw the error as normal
                     throw e;
                 }
@@ -85,7 +81,8 @@ public class ChangeManager {
             log.error("Failed scripts: {}", String.join(", ", failedScripts));
             endSyncError(ChangeType.DEPLOY, errorMsg);
             throw new RuntimeException(errorMsg);
-        } else {
+        }
+        else {
             endSyncSuccess(ChangeType.DEPLOY, (long)sequencedScript.size());
         }
     }

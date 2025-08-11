@@ -1,6 +1,6 @@
 version: 1
 configTables:
-continueOnFailure: true
+continueOnFailure: false
 scriptExclusion:
   - ${EXAMPLE_DB}.${AUDIT_SCHEMA}.AUDIT_SEQ
 dependencyOverride:

@@ -23,6 +23,6 @@ public class Config {
     
 
     public boolean isContinueOnFailure() {
-        return continueOnFailure;
+        return continueOnFailure != null && continueOnFailure;
     }
 }
