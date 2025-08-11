@@ -210,12 +210,7 @@ public class ScriptRepo {
         try {
             connection.setAutoCommit(false);
             if(!onlyHashes) {
-                if(script.getObjectType().getSingular() == "PIPE"){
-                    statement.execute(script.getContent());
-                }
-                else{
-                    statement.executeUpdate(script.getContent());
-                }
+                statement.execute(script.getContent());
                 log.debug("Creating object using the SQL: {}", script.getContent());
             }
             updateScriptHash(script);

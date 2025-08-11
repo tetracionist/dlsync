@@ -8,7 +8,7 @@ import java.util.Properties;
 @Data
 public class Config {
     private String version;
-    private String continueOnFailure;
+    private Boolean continueOnFailure;
     private List<String> scriptExclusion;
     private List<DependencyOverride> dependencyOverride;
     private List<String> configTables;
@@ -23,6 +23,6 @@ public class Config {
     
 
     public boolean isContinueOnFailure() {
-        return "true".equalsIgnoreCase(continueOnFailure);
+        return continueOnFailure;
     }
 }
