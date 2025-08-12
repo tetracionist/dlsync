@@ -368,7 +368,7 @@ class DependencyExtractorTest {
     @Test
     void extractScriptDependenciesIdentifierInQuotes() {
         String content = "create or replace streamlit TEST_SCHEMA1.STREAMLIT_1\n" +
-                "root_location='@TEST_SCHEMA2.STAGE1'\n" +
+                "root_location=@TEST_SCHEMA2.STAGE1\n" +
                 "\tmain_file='/streamlit_app.py'\n" +
                 "\tquery_warehouse='${MY_WAREHOUSE}'";
         Script script = ScriptFactory.getStateScript("TEST_DB", "TEST_SCHEMA1", ScriptObjectType.STREAMLITS, "STREAMLIT_1", content);

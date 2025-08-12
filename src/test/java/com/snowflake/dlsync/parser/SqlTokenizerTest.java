@@ -269,6 +269,21 @@ class SqlTokenizerTest {
     }
 
     @Test
+    void removeStringLiterals() {
+        String sql = "create or replace view view1 " +
+                " comment='some comments'" +
+                " as select * from table1 where id = 'some values ' " +
+                " and date <= current_date();";
+        String expected = "create or replace view view1 " +
+                " comment=''" +
+                " as select * from table1 where id = '' " +
+                " and date <= current_date();";
+
+        String actual = SqlTokenizer.removeSqlStringLiterals(sql);
+        assertEquals(expected, actual, "Failed to remove comments.");
+    }
+
+    @Test
     void parseScriptTypeView() {
         String filePath = "db_scripts/db1/schema1/VIEWS/VIEW1.SQL";
         String name = "VIEW1.SQL";
