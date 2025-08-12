@@ -5,7 +5,7 @@
 [![unit-test](https://github.com/Snowflake-Labs/dlsync/actions/workflows/test.yml/badge.svg)](https://github.com/Snowflake-Labs/dlsync/actions/workflows/test.yml)
 [![release](https://img.shields.io/github/release/Snowflake-Labs/dlsync.svg?style=flat)](https://github.com/Snowflake-Labs/dlsync/releases/latest)
 ---
-
+## Overview
 DLSync is a database change management tool designed to streamline the development and deployment of snowflake changes. 
 By associating each database object(view, table, udf ...) with a corresponding SQL script file, DLSync tracks every modification, ensuring efficient and accurate updates.
 Each script can also have a corresponding test script that can be used to write unit tests for the database object. 
@@ -14,6 +14,31 @@ by using hash. Hence, DLSync is capable of identifying what scripts have changed
 Using this DLSync only deploys changed script to database objects.
 DLSync also understands interdependency between different scripts, thus applies these changes
 according their dependency.
+
+## Table of Contents
+
+1. [Overview](#overview)
+1. [Key Features](#key-features)
+1. [Project structure](#project-structure)
+   1. [Script content](#script-content)
+      1. [State Script](#1-state-script)
+      1. [Migration Script](#2-migration-script)
+      1. [Test Script](#3-test-script)
+   1. [Configurations](#configurations)
+       1. [Parameter profile](#parameter-profile)
+       1. [config file](#config-file)
+   1. [How to use this tool](#how-to-use-this-tool)
+      1. [Deploy](#deploy)
+      1. [Test](#test)
+      1. [Rollback](#rollback)
+      1. [Verify](#verify)
+      1. [Create script](#create-script)
+1. [Tables used by this tool](#tables-used-by-this-tool)
+     1. [dl_sync_script_history](#dl_sync_script_history)
+     1. [dl_sync_change_sync](#dl_sync_change_sync)
+     1. [dl_sync_script_event](#dl_sync_script_event)
+1. [Example scripts](#example-scripts)
+
 ## Key Features 
 - Hybrid Change Management: It combines state based and migration based change management to manage database changes
 - Unique Script per object: Each object will have it's corresponding unique Script file where we can define the change to the object
@@ -66,7 +91,7 @@ Inside this directory create a directory structure like:
 Where 
 - **database_name_*:** is the database name of your project, 
 - **schema_name_*:** are schemas inside the database, 
-- **object_type:** is type of the object only 1 of the following (VIEWS, FUNCTIONS, PROCEDURES, FILE_FORMATS, TABLES, SEQUENCES, STAGES, STREAMS, TASKS)
+- **object_type:** is type of the object only 1 of the following (VIEWS, FUNCTIONS, PROCEDURES, FILE_FORMATS, TABLES, SEQUENCES, STAGES, STREAMS, TASKS, STREAMLITS, PIPES, ALERTS)
 - **object_name_*.sql:** are individual database object scripts.
 - **config.yml:** is a configuration file used to configure DLSync behavior.
 - **parameter-[profile-*].properties:** is parameter to value map file. This is going to be used by corresponding individual instances of your database.
@@ -95,7 +120,7 @@ eg: view named SAMPLE_VIEW can have the following SQL statement in the `SAMPLE_V
 create or replace view ${MY_DB}.{MY_SCHEMA}.SAMPLE_VIEW as select * from ${MY_DB}.{MY_SECOND_SCHEMA}.MY_TABLE;
 ```
 #### 2. Migration Script
-This type of script is used for object types of TABLES, SEQUENCES, STAGES, STREAMS and TASKS.
+This type of script is used for object types of TABLES, SEQUENCES, STAGES, STREAMS, TASKS and ALERTS.
 Here the script is treated as migration that will be applied to the object sequentially based on the version number. 
 This type of script contains 1 or more migration versions. One migration versions contains version number, author(optional), content (DDL or DML SQL statement) , rollback statement(optional) and verify statement(optional).
 Each migration version is immutable i.e Once the version is deployed you can not change the code of this version. Only you can add new versions.
@@ -253,6 +278,7 @@ The config file is used to configure the behavior of this tool. The config file 
 version: #version of the config file
 configTables:  # List of configuration tables, only used for create script module
 scriptExclusion: # List of script files to be excluded from deploy, verify, rollback and create script module
+continueOnFailure: "true" # "true" or "false, controls the error disposition of the tool.
 dependencyOverride: # List of additional dependencies for the scripts
   - script: # script file name to override the dependencies 
     dependencies: List of dependencies to override
@@ -268,6 +294,7 @@ connection:
  ```
 The `configTables` is used by create script module to add the data of the tables to the script file.
 The `scriptExclusion` is used to exclude the script files from being processed by this tool. 
+The `continueOnFailure` is used to control error disposition, "true" will fail deployment on first failure or "false" will try to deploy all items in dependency tree before failing.
 The `dependencyOverride` is used to override the dependencies of the script files. This can be used to add additional dependencies to the script files.
 The `connection` is used to configure the connection to snowflake account. 
 **Warning: Please use the connection property for local development and experimenting. Since the config file is checked in to your git repo please avoid adding any connection information to your config file. You can provide the connection details in environment variables.**

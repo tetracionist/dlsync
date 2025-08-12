@@ -269,6 +269,21 @@ class SqlTokenizerTest {
     }
 
     @Test
+    void removeStringLiterals() {
+        String sql = "create or replace view view1 " +
+                " comment='some comments'" +
+                " as select * from table1 where id = 'some values ' " +
+                " and date <= current_date();";
+        String expected = "create or replace view view1 " +
+                " comment=''" +
+                " as select * from table1 where id = '' " +
+                " and date <= current_date();";
+
+        String actual = SqlTokenizer.removeSqlStringLiterals(sql);
+        assertEquals(expected, actual, "Failed to remove comments.");
+    }
+
+    @Test
     void parseScriptTypeView() {
         String filePath = "db_scripts/db1/schema1/VIEWS/VIEW1.SQL";
         String name = "VIEW1.SQL";
@@ -505,13 +520,39 @@ class SqlTokenizerTest {
         assertEquals(1, scripts.size(), "There should be exactly one script parsed");
 
         Script script = scripts.iterator().next();
-        assertEquals("STREAMLIT1", script.getObjectName(), "Object name should be VIEW1");
+        assertEquals("STREAMLIT1", script.getObjectName(), "Object name should be STREAMLIT1");
         assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
         assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
-        assertEquals(ScriptObjectType.STREAMLITS, script.getObjectType(), "Object type should be VIEWS");
+        assertEquals(ScriptObjectType.STREAMLITS, script.getObjectType(), "Object type should be STREAMLITS");
         assertEquals(content, script.getContent(), "Script content should match the input content");
 
     }
+
+    @Test
+    void parseScriptTypePipe() {
+        String filePath = "db_scripts/db1/schema1/PIPES/PIPE1.SQL";
+        String name = "PIPE1.SQL";
+        String scriptType = "PIPES";
+        String content = "CREATE OR REPLACE PIPE db1.schema1.PIPE1\n" +
+                         "  AUTO_INGEST = TRUE\n" +
+                         "  COMMENT = 'Loads data automatically from stage'\n" +
+                         "  AS COPY INTO db1.schema1.my_table\n" +
+                         "  FROM @my_stage/file_prefix\n" +
+                         "  FILE_FORMAT = (TYPE = 'CSV');";
+    
+        Set<Script> scripts = SqlTokenizer.parseScript(filePath, name, scriptType, content);
+    
+        assertNotNull(scripts, "Scripts should not be null");
+        assertEquals(1, scripts.size(), "There should be exactly one script parsed");
+    
+        Script script = scripts.iterator().next();
+        assertEquals("PIPE1", script.getObjectName(), "Object name should be PIPE1");
+        assertEquals("db1".toUpperCase(), script.getDatabaseName(), "Database name should be db1");
+        assertEquals("schema1".toUpperCase(), script.getSchemaName(), "Schema name should be schema1");
+        assertEquals(ScriptObjectType.PIPES, script.getObjectType(), "Object type should be PIPES");
+        assertEquals(content, script.getContent(), "Script content should match the input content");
+    }
+    
 
 
 }

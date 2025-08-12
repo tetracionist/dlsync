@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class SqlTokenizer {
-    private static final String TOKEN_START_REGEX = "(?:[=()\\[\\],\\.\\s\\\"\\'])";
+    private static final String TOKEN_START_REGEX = "(?:[@=()\\[\\],\\.\\s\\\"\\'])";
     private static final String TOKEN_END_REGEX = "(?:[=()\\[\\],\\.\\s\\\"\\';]|$)";
     private static final char[] TOKENS = {'.', ',', ';', '"', '\'', '[', ']', '(', ')'};
     private static  final String MIGRATION_HEADER = "(\\s*---\\s*(?i)version\\s*:\\s*(?<version>\\d+)\\s*)(,\\s*(?i)author\\s*:\\s*(?<author>\\w+)\\s*)?";
