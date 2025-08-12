@@ -5,7 +5,7 @@
 [![unit-test](https://github.com/Snowflake-Labs/dlsync/actions/workflows/test.yml/badge.svg)](https://github.com/Snowflake-Labs/dlsync/actions/workflows/test.yml)
 [![release](https://img.shields.io/github/release/Snowflake-Labs/dlsync.svg?style=flat)](https://github.com/Snowflake-Labs/dlsync/releases/latest)
 ---
-
+## Overview
 DLSync is a database change management tool designed to streamline the development and deployment of snowflake changes. 
 By associating each database object(view, table, udf ...) with a corresponding SQL script file, DLSync tracks every modification, ensuring efficient and accurate updates.
 Each script can also have a corresponding test script that can be used to write unit tests for the database object. 
@@ -14,6 +14,31 @@ by using hash. Hence, DLSync is capable of identifying what scripts have changed
 Using this DLSync only deploys changed script to database objects.
 DLSync also understands interdependency between different scripts, thus applies these changes
 according their dependency.
+
+## Table of Contents
+
+1. [Overview](#overview)
+1. [Key Features](#key-features)
+1. [Project structure](#project-structure)
+   1. [Script content](#script-content)
+      1. [State Script](#1-state-script)
+      1. [Migration Script](#2-migration-script)
+      1. [Test Script](#3-test-script)
+   1. [Configurations](#configurations)
+       1. [Parameter profile](#parameter-profile)
+       1. [config file](#config-file)
+   1. [How to use this tool](#how-to-use-this-tool)
+      1. [Deploy](#deploy)
+      1. [Test](#test)
+      1. [Rollback](#rollback)
+      1. [Verify](#verify)
+      1. [Create script](#create-script)
+1. [Tables used by this tool](#tables-used-by-this-tool)
+     1. [dl_sync_script_history](#dl_sync_script_history)
+     1. [dl_sync_change_sync](#dl_sync_change_sync)
+     1. [dl_sync_script_event](#dl_sync_script_event)
+1. [Example scripts](#example-scripts)
+
 ## Key Features 
 - Hybrid Change Management: It combines state based and migration based change management to manage database changes
 - Unique Script per object: Each object will have it's corresponding unique Script file where we can define the change to the object
