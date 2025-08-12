@@ -243,9 +243,9 @@ public class ChangeManager {
         endSyncSuccess(ChangeType.TEST, (long)size);
     }
 
-    public void cleanup() throws SQLException, IOException {
-        log.info("Started Cleanup module.");
-        startSync(ChangeType.CLEANUP);
+    public void detectScriptDrift() throws SQLException, IOException {
+        log.info("Started detect script drift module.");
+        startSync(ChangeType.DETECT_SCRIPT_DRIFT);
 
         // First get all the scripts that we can find in source control 
         // List<Script> scripts = scriptSource.getAllScripts();
@@ -274,7 +274,7 @@ public class ChangeManager {
             log.info("No missing objects found.");
         }
 
-        endSyncSuccess(ChangeType.CLEANUP, (long)missing.size());
+        endSyncSuccess(ChangeType.DETECT_SCRIPT_DRIFT, (long)missing.size());
     }
 
     public void startSync(ChangeType changeType) throws SQLException {

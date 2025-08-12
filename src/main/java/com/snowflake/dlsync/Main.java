@@ -56,9 +56,9 @@ public class Main {
                     changeManager.test();
                     log.info("DLsync successfully tested.");
                     break;
-                case CLEANUP:
-                    changeManager.cleanup();
-                    log.info("DLsync successfully cleaned-up.");
+                case DETECT_SCRIPT_DRIFT:
+                    changeManager.detectScriptDrift();
+                    log.info("DLsync successfully checked for script drift.");
                     break;
                 default:
                     log.error("Change type not specified as an argument.");
