@@ -28,14 +28,13 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.38'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.junit.platform:junit-platform-launcher:1.13.4'
 }
 
 group = 'com.snowflake'
 version = releaseVersion
 description = 'dlsync'
-java.sourceCompatibility = JavaVersion.VERSION_17
-java.targetCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_11
 
 jar {
     dependsOn 'test'
