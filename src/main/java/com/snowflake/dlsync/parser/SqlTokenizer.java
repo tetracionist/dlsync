@@ -79,6 +79,9 @@ public class SqlTokenizer {
         Set<Script> scripts = new HashSet<>();
         if(objectType.isMigration()) {
             List<Migration> migrations = SqlTokenizer.parseMigrationScripts(content);
+            if(migrations.isEmpty()) {
+                log.warn("Object type: {} is migration, but there are no migrations found in the file: {}", objectType, filePath);
+            }
             for(Migration migration: migrations) {
                 MigrationScript script = ScriptFactory.getMigrationScript(database, schema, objectType, objectName, migration);
 //                Script script = new Script(database, schema, objectType, objectName, migration.getContent(), migration.getVersion(), migration.getAuthor(), migration.getRollback());
