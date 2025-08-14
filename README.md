@@ -25,8 +25,8 @@ according their dependency.
       1. [Migration Script](#2-migration-script)
       1. [Test Script](#3-test-script)
    1. [Configurations](#configurations)
-       1. [Parameter profile](#parameter-profile)
-       1. [config file](#config-file)
+      1. [Parameter profile](#parameter-profile)
+      1. [config file](#config-file)
    1. [How to use this tool](#how-to-use-this-tool)
       1. [Deploy](#deploy)
       1. [Test](#test)
@@ -34,9 +34,9 @@ according their dependency.
       1. [Verify](#verify)
       1. [Create script](#create-script)
 1. [Tables used by this tool](#tables-used-by-this-tool)
-     1. [dl_sync_script_history](#dl_sync_script_history)
-     1. [dl_sync_change_sync](#dl_sync_change_sync)
-     1. [dl_sync_script_event](#dl_sync_script_event)
+   1. [dl_sync_script_history](#dl_sync_script_history)
+   1. [dl_sync_change_sync](#dl_sync_change_sync)
+   1. [dl_sync_script_event](#dl_sync_script_event)
 1. [Example scripts](#example-scripts)
 
 ## Key Features 
@@ -104,7 +104,7 @@ Each object will have a single SQL to track the changes applied to the given obj
 For example if you have a view named `SAMPLE_VIEW` in schema `MY_SCHEMA` in database `MY_DATABASE`, then the script file should be named `SAMPLE_VIEW.SQL` and should be placed in the directory `[scripts_root]/main/MY_DATABASE/MY_SCHEMA/VIEWS/SAMPLE_VIEW.SQL`.
 The structure and content of the scripts will defer based on the type of script. This tool categorizes script in to 2 types named State script and Migration script.
 #### 1. State Script
-This type of script is used for object types of Views, UDF, Stored Procedure and File formats.
+This type of script is used for object types of Views, UDF, Stored Procedure, File formats and Pipes.
 In this type of script you define the current state(desired state) of the object.
 When a change is made to the script, DLSync replaces the current object with the updated definition. 
 These types of scripts must always have `create or replace` statement. Every time you make a change to the script DLSync will replace the object with the new definition.
@@ -292,7 +292,7 @@ connection:
     schema: # snowflake schema
     authenticator: # snowflake authenticator(optional)
     private_key_file: # snowflake p8 file
-    private_key_pwd: # password for private key file
+    private_key_file_pwd: # password for private key file
  ```
 The `configTables` is used by create script module to add the data of the tables to the script file.
 The `scriptExclusion` is used to exclude the script files from being processed by this tool. 
@@ -311,8 +311,8 @@ password=password #password for the connection (optional)
 authenticator=externalbrowser #authenticator used for the connection (optional)
 warehouse=my_warehouse #warehouse to be used by the connection
 role=my_role    #role used by this tool
-private_key_file=private_key_file.p8
-private_key_pwd=examplePrivateKeyPa$$w0rd
+private_key_file=my_private_key_file.p8     # private key file used for the connection (optional)
+private_key_file_pwd=my_private_key_password  # password for the private key file (optional)
 
 ```
 
