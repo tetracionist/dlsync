@@ -1,7 +1,7 @@
 package com.snowflake.dlsync.doa;
 
 import com.snowflake.dlsync.ScriptFactory;
-import com.snowflake.dlsync.Util;
+import com.snowflake.dlsync.utils.getMd5Hash;
 import com.snowflake.dlsync.dependency.DependencyExtractor;
 import com.snowflake.dlsync.models.*;
 import com.snowflake.dlsync.parser.SqlTokenizer;
@@ -151,7 +151,7 @@ public class ScriptRepo {
             rollback = migrationScript.getRollback();
         }
         PreparedStatement statement;
-        String deployedHash = Util.getMd5Hash(script.getContent());
+        String deployedHash = getMd5Hash.getMd5Hash(script.getContent());
         log.debug("Updating script hash of object {}", script.getId());
         if(scriptHash.containsKey(script.getId())) {
             String updateSql = "UPDATE " + SCRIPT_HISTORY_TABLE_NAME + " SET ROLLBACK_SCRIPT=?, SCRIPT_HASH=?, DEPLOYED_HASH=?, CHANGE_SYNC_ID=?, updated_by=current_user, updated_ts=current_timestamp WHERE SCRIPT_ID=?;";

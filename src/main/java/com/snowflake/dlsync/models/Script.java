@@ -2,7 +2,7 @@
 
 package com.snowflake.dlsync.models;
 
-import com.snowflake.dlsync.Util;
+import com.snowflake.dlsync.utils.getMd5Hash;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -24,7 +24,7 @@ public abstract class Script {
         this.objectName = objectName.toUpperCase();
         this.objectType = objectType;
         this.content = content.trim();
-        this.hash = hash = Util.getMd5Hash(this.content);
+        this.hash = hash = getMd5Hash.getMd5Hash(this.content);
     }
 
     public String getScriptPath() {
