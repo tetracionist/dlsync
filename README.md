@@ -17,27 +17,30 @@ according their dependency.
 
 ## Table of Contents
 
-1. [Overview](#overview)
-1. [Key Features](#key-features)
-1. [Project structure](#project-structure)
-   1. [Script content](#script-content)
-      1. [State Script](#1-state-script)
-      1. [Migration Script](#2-migration-script)
-      1. [Test Script](#3-test-script)
-   1. [Configurations](#configurations)
-      1. [Parameter profile](#parameter-profile)
-      1. [config file](#config-file)
-   1. [How to use this tool](#how-to-use-this-tool)
-      1. [Deploy](#deploy)
-      1. [Test](#test)
-      1. [Rollback](#rollback)
-      1. [Verify](#verify)
-      1. [Create script](#create-script)
-1. [Tables used by this tool](#tables-used-by-this-tool)
-   1. [dl_sync_script_history](#dl_sync_script_history)
-   1. [dl_sync_change_sync](#dl_sync_change_sync)
-   1. [dl_sync_script_event](#dl_sync_script_event)
-1. [Example scripts](#example-scripts)
+- [DLSync](#dlsync)
+  - [](#)
+  - [Overview](#overview)
+  - [Table of Contents](#table-of-contents)
+  - [Key Features](#key-features)
+  - [Project structure](#project-structure)
+    - [Script content](#script-content)
+      - [1. State Script](#1-state-script)
+      - [2. Migration Script](#2-migration-script)
+      - [3. Test Script](#3-test-script)
+    - [Configurations](#configurations)
+      - [Parameter profile](#parameter-profile)
+      - [config file](#config-file)
+    - [How to use this tool](#how-to-use-this-tool)
+      - [Deploy](#deploy)
+      - [Test](#test)
+      - [Rollback](#rollback)
+      - [Verify](#verify)
+      - [Create script](#create-script)
+  - [Tables used by this tool](#tables-used-by-this-tool)
+    - [dl\_sync\_script\_history](#dl_sync_script_history)
+    - [dl\_sync\_change\_sync](#dl_sync_change_sync)
+    - [dl\_sync\_script\_event](#dl_sync_script_event)
+  - [Example scripts](#example-scripts)
 
 ## Key Features 
 - Hybrid Change Management: It combines state based and migration based change management to manage database changes
@@ -292,7 +295,7 @@ connection:
     schema: # snowflake schema
     authenticator: # snowflake authenticator(optional)
     private_key_file: # snowflake p8 file
-    private_key_file_pwd: # password for private key file
+    private_key_pwd: # password for private key file
  ```
 The `configTables` is used by create script module to add the data of the tables to the script file.
 The `scriptExclusion` is used to exclude the script files from being processed by this tool. 
@@ -312,8 +315,8 @@ authenticator=externalbrowser #authenticator used for the connection (optional)
 warehouse=my_warehouse #warehouse to be used by the connection
 role=my_role    #role used by this tool
 private_key_file=my_private_key_file.p8     # private key file used for the connection (optional)
-private_key_file_pwd=my_private_key_password  # password for the private key file (optional)
-
+private_key_pwd=my_private_key_password  # password for the private key file (optional)
+JAVA_TOOL_OPTIONS="-Dnet.snowflake.jdbc.enableBouncyCastle=true" # This must be set if using encrypted key-pair authentication
 ```
 
 You also need to provide the script root directory and which profile to use. This can be provided in the command line argument or in the environment variable.
