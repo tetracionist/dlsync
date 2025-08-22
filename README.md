@@ -312,8 +312,8 @@ authenticator=externalbrowser #authenticator used for the connection (optional)
 warehouse=my_warehouse #warehouse to be used by the connection
 role=my_role    #role used by this tool
 private_key_file=my_private_key_file.p8     # private key file used for the connection (optional)
-private_key_file_pwd=my_private_key_password  # password for the private key file (optional)
-
+private_key_pwd=my_private_key_password  # password for the private key file (optional)
+JAVA_TOOL_OPTIONS ="-Dnet.snowflake.jdbc.enableBouncyCastle=true" # This must be set if using encrypted key-pair authentication
 ```
 
 You also need to provide the script root directory and which profile to use. This can be provided in the command line argument or in the environment variable.
